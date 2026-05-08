@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="OFC Coach">
+<title>OFC Coach</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --accent:#C96358;--accent-light:#FAECE7;--accent-dark:#993C1D;
+  --bg:#FAF8F5;--surface:#FFFFFF;--surface2:#F5F2EE;
+  --text:#1E1616;--text2:#7A6E6E;--text3:#B0A8A8;
+  --border:#E8E0D8;--border2:#D4C8C0;
+  --green:#3B6D11;--green-bg:#EAF3DE;
+  --amber:#854F0B;--amber-bg:#FAEEDA;
+  --blue:#185FA5;--blue-bg:#E6F1FB;
+  --red:#993C1D;--red-bg:#FAECE7;
+  --radius:14px;--radius-sm:8px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+/* HEADER */
+.app-header{background:var(--surface);padding:16px 20px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between}
+.app-title{font-size:17px;font-weight:600;color:var(--text)}
+.app-date{font-size:12px;color:var(--text2);margin-top:1px}
+.btn-add{background:var(--accent);color:white;border:none;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer}
+/* TABS */
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;gap:0}
+.tab{flex:1;text-align:center;padding:10px 4px;font-size:13px;font-weight:500;color:var(--text2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+/* SECTIONS */
+.section{display:none;padding:14px 16px;min-height:200px}
+.section.active{display:block}
+/* CLIENT CARD */
+.card{background:var(--surface);border-radius:var(--radius);padding:14px;margin-bottom:10px;border:1px solid var(--border);cursor:pointer;transition:transform .1s,border-color .2s}
+.card:active{transform:scale(0.98);border-color:var(--border2)}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.cname{font-size:14px;font-weight:600;color:var(--text)}
+.coffre{font-size:11px;color:var(--text2);margin-top:2px}
+.badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;margin-left:auto;flex-shrink:0}
+.badge-actif{background:var(--green-bg);color:var(--green)}
+.badge-termine{background:var(--surface2);color:var(--text2)}
+.prog-bar{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;margin:6px 0}
+.prog-fill{height:100%;border-radius:3px;transition:width .3s}
+.stats-row{display:flex;gap:6px;margin-top:6px}
+.stat{flex:1;background:var(--surface2);border-radius:var(--radius-sm);padding:6px 8px}
+.stat-l{font-size:10px;color:var(--text2)}
+.stat-v{font-size:12px;font-weight:600;color:var(--text);margin-top:1px}
+/* ALERT CARD */
+.alert-card{background:var(--amber-bg);border-radius:var(--radius-sm);padding:10px 13px;margin-bottom:8px;border-left:3px solid #EF9F27;cursor:pointer}
+.alert-name{font-size:13px;font-weight:600;color:var(--amber)}
+.alert-info{font-size:11px;color:#633806;margin-top:2px}
+/* VIEWS */
+.view{display:none}
+.view.active{display:block}
+/* BACK BTN */
+.back-btn{background:none;border:none;color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;padding:16px 20px 10px;display:flex;align-items:center;gap:4px;width:100%}
+/* DETAIL */
+.detail-wrap{padding:0 16px 30px}
+.detail-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.detail-name{font-size:18px;font-weight:700;color:var(--text)}
+.detail-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.dcard{background:var(--surface);border-radius:var(--radius);padding:14px;margin-bottom:10px;border:1px solid var(--border)}
+.dcard-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.dcard-edit{font-size:12px;color:var(--accent);font-weight:500;background:none;border:none;cursor:pointer;text-transform:none;letter-spacing:0}
+.big-num{text-align:center;margin-bottom:8px}
+.big-num span:first-child{font-size:36px;font-weight:700;color:var(--text)}
+.big-num span:last-child{font-size:18px;color:var(--text2)}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
+.info-row:last-child{border-bottom:none}
+.info-l{font-size:12px;color:var(--text2)}
+.info-v{font-size:12px;font-weight:600;color:var(--text);text-align:right;max-width:60%}
+.seance-btn{width:100%;padding:13px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;margin-top:10px}
+.seance-btn:disabled{background:var(--surface2);color:var(--text3);cursor:not-allowed}
+.whatsapp-btn{width:100%;padding:11px;background:#25D366;color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px}
+.action-btn{width:100%;padding:11px;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;margin-bottom:6px;text-align:left}
+.danger-btn{width:100%;padding:10px;background:none;border:1px solid #E24B4A;border-radius:var(--radius-sm);font-size:12px;color:#E24B4A;cursor:pointer;margin-top:4px}
+/* MENSURATIONS GRID */
+.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.m-item{background:var(--surface2);border-radius:var(--radius-sm);padding:8px 10px}
+.m-label{font-size:10px;color:var(--text2)}
+.m-val{font-size:15px;font-weight:700;color:var(--text);margin-top:1px}
+.m-diff{font-size:10px;margin-top:2px;font-weight:600}
+.m-diff.pos{color:#E24B4A}
+.m-diff.neg{color:var(--green)}
+/* HISTORIQUE MENSURATIONS */
+.histo-table{width:100%;font-size:11px;border-collapse:collapse}
+.histo-table th{font-weight:600;color:var(--text2);padding:4px 6px;border-bottom:1px solid var(--border);text-align:left}
+.histo-table td{padding:5px 6px;border-bottom:1px solid var(--border);color:var(--text)}
+.histo-table tr:last-child td{border-bottom:none}
+.chart-bar-wrap{margin-top:10px}
+.chart-label{font-size:11px;color:var(--text2);margin-bottom:4px}
+.chart-bars{display:flex;align-items:flex-end;gap:4px;height:60px}
+.chart-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.chart-bar{width:100%;background:var(--accent-light);border-radius:3px 3px 0 0;transition:height .3s;min-height:2px;position:relative}
+.chart-bar.latest{background:var(--accent)}
+.chart-date{font-size:8px;color:var(--text3);text-align:center}
+.chart-val{font-size:8px;color:var(--text2);text-align:center}
+/* FORM */
+.form-wrap{padding:0 16px 40px}
+.form-section-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.form-group{margin-bottom:10px}
+.form-label{font-size:12px;color:var(--text2);margin-bottom:4px;display:block;font-weight:500}
+.form-input{width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);-webkit-appearance:none}
+.form-input:focus{outline:none;border-color:var(--accent)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.save-btn{width:100%;padding:14px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;margin-top:14px}
+/* TOAST */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1E1616;color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1}
+/* EMPTY */
+.empty{text-align:center;padding:30px 20px;color:var(--text2);font-size:13px}
+/* UNDO + NOTIF */
+.undo-btn{width:100%;padding:8px;background:none;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:12px;color:var(--text2);cursor:pointer;margin-top:5px}
+.undo-btn:disabled{opacity:0.35;cursor:not-allowed}
+.notif-btn{background:none;border:none;font-size:20px;cursor:pointer;padding:2px 6px;opacity:0.7}
+.notif-btn.on{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- VIEW: LIST -->
+<div id="view-list" class="view active">
+  <div class="app-header">
+    <div><div class="app-title">Ornella Fit Coaching</div><div class="app-date" id="today-date"></div></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <button class="notif-btn" id="notif-btn" onclick="toggleNotif()" title="Alertes iPhone">🔔</button>
+      <a href="facturation.html" style="background:none;border:1.5px solid var(--accent);color:var(--accent);border-radius:20px;padding:6px 13px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap">🧾 Factures</a>
+      <button class="btn-add" onclick="showForm(null)">+ Ajouter</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('actives')">Actives</button>
+    <button class="tab" onclick="showTab('toutes')">Toutes</button>
+    <button class="tab" onclick="showTab('alertes')">Alertes</button>
+  </div>
+  <div id="section-actives" class="section active"></div>
+  <div id="section-toutes" class="section"></div>
+  <div id="section-alertes" class="section"></div>
+</div>
+
+<!-- VIEW: DETAIL -->
+<div id="view-detail" class="view">
+  <button class="back-btn" onclick="showList()">← Retour</button>
+  <div class="detail-wrap" id="detail-content"></div>
+</div>
+
+<!-- VIEW: FORM -->
+<div id="view-form" class="view">
+  <button class="back-btn" id="form-back">← Annuler</button>
+  <div class="form-wrap" id="form-content"></div>
+</div>
+
+<!-- VIEW: ADD MENSURATION -->
+<div id="view-mension" class="view">
+  <button class="back-btn" id="mension-back">← Retour</button>
+  <div class="form-wrap" id="mension-content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── AUTH CHECK ──────────────────────────────────────────────
+if(localStorage.getItem('ofc_tools_auth')!=='ok'){window.location.replace('./?r=crm');}
+
+// ── CONFIG ────────────────────────────────────────────────────
+var COLORS = [
+  {bg:'#E6F1FB',tx:'#185FA5'},{bg:'#EAF3DE',tx:'#3B6D11'},
+  {bg:'#FAEEDA',tx:'#854F0B'},{bg:'#FBEAF0',tx:'#993556'},
+  {bg:'#EEEDFE',tx:'#3C3489'},{bg:'#E1F5EE',tx:'#0F6E56'},
+  {bg:'#FAECE7',tx:'#993C1D'},{bg:'#F1EFE8',tx:'#5F5E5A'}
+];
+var MFIELDS = [
+  {key:'poids',label:'Poids',unit:'kg'},
+  {key:'taille',label:'Taille (hauteur)',unit:'cm'},
+  {key:'tourTaille',label:'Tour taille',unit:'cm'},
+  {key:'tourHanches',label:'Tour hanches',unit:'cm'},
+  {key:'tourFessiers',label:'Tour fessiers',unit:'cm'},
+  {key:'tourCuisses',label:'Tour cuisses',unit:'cm'},
+  {key:'tourPoitrine',label:'Poitrine',unit:'cm'},
+  {key:'tourDos',label:'Tour dos',unit:'cm'},
+  {key:'tourBras',label:'Bras',unit:'cm'}
+];
+
+var defaultClients = [
+  {id:1,nom:"Louise Gabillaud",age:35,email:"louise.gabillaud@gmail.com",telephone:"679753840",adresse:"",codePostal:"",ville:"",offre:"24 séances présentiel",debut:"03/04/2026",seancesPrevues:24,seancesEffectuees:5,montant:1200,paye:1200,paiement:"Virement",statut:"Actif",objectif:"Perte de poids",lieu:"Domicile",antecedents:"2 grossesses",joursPreferes:"Lundi 12H-13H / Vendredi 12H-13H",contratSigne:true,cgvAcceptees:true,notes:"",ci:0,
+    mesures:[{date:"03/04/2026",poids:70,taille:167,tourTaille:82,tourHanches:101,tourFessiers:105,tourCuisses:58,tourPoitrine:92,tourDos:null,tourBras:28}]},
+  {id:2,nom:"Béatrice Peuvrier",age:56,email:"beatrice.peuvrier@bconcept.ovh",telephone:"661635719",adresse:"",codePostal:"",ville:"",offre:"Pack 10 séances",debut:"03/03/2026",seancesPrevues:10,seancesEffectuees:1,montant:null,paye:null,paiement:"Virement",statut:"Actif",objectif:"Remise en forme",lieu:"Domicile",antecedents:"Pubalgie hanche / contracture psoas",joursPreferes:"Lundi 9H30 ou Mardi 9H30",contratSigne:true,cgvAcceptees:true,notes:"",ci:1,
+    mesures:[{date:"03/03/2026",poids:64,taille:168,tourTaille:72,tourHanches:103,tourFessiers:102,tourCuisses:54,tourPoitrine:95,tourDos:84,tourBras:28}]},
+  {id:3,nom:"Émeline Cozzi",age:31,email:"emeline.cozzibouygues@gmail.com",telephone:"650357276",adresse:"20 av du Président Salvador Allende",codePostal:"91240",ville:"St-Michel-sur-Orge",offre:"1 séance/sem - 1 mois",debut:"21/04/2026",seancesPrevues:4,seancesEffectuees:3,montant:290,paye:290,paiement:"Virement",statut:"Actif",objectif:"Prise de masse",lieu:"Hybride",antecedents:"RAS - 2 grossesses",joursPreferes:"Lundi 10H45 salle / Jeudi 12H domicile",contratSigne:true,cgvAcceptees:true,notes:"",ci:2,
+    mesures:[{date:"21/04/2026",poids:60,taille:164,tourTaille:71,tourHanches:89,tourFessiers:99,tourCuisses:58,tourPoitrine:89,tourDos:78,tourBras:26}]},
+  {id:4,nom:"Sandra Daouadi",age:37,email:"sandra_daouadi@yahoo.fr",telephone:"761417648",adresse:"19 rue Elsa Triolet",codePostal:"91160",ville:"Saulx-les-Chartreux",offre:"1 mois PDF Distanciel",debut:"15/04/2026",seancesPrevues:null,seancesEffectuees:null,montant:59,paye:59,paiement:"Virement",statut:"Actif",objectif:"Perte de poids",lieu:"Distanciel",antecedents:"Néant",joursPreferes:"",contratSigne:false,cgvAcceptees:true,notes:"Veut perdre du ventre. PDF envoyé.",ci:3,mesures:[]},
+  {id:5,nom:"Laurie Jordan",age:39,email:"jordan_laurie@yahoo.fr",telephone:"664635637",adresse:"5 rue des Vieux Gagnons",codePostal:"91460",ville:"Marcoussis",offre:"1 séance/sem - 1 mois",debut:"09/04/2026",seancesPrevues:4,seancesEffectuees:4,montant:260,paye:260,paiement:"Virement",statut:"Terminé",objectif:"Perte de poids",lieu:"Domicile",antecedents:"1 grossesse / déchirure ligaments genou / fracture pied",joursPreferes:"Jeudi",contratSigne:true,cgvAcceptees:true,notes:"",ci:4,
+    mesures:[{date:"09/04/2026",poids:92,taille:166,tourTaille:88,tourHanches:122,tourFessiers:125,tourCuisses:71,tourPoitrine:108,tourDos:87,tourBras:37}]},
+  {id:6,nom:"Samantha Abgrall",age:34,email:"samantha.abgrall@gmail.com",telephone:"",adresse:"",codePostal:"",ville:"",offre:"PDF 3/sem",debut:"16/03/2026",seancesPrevues:12,seancesEffectuees:12,montant:59,paye:59,paiement:"Virement",statut:"Terminé",objectif:"Perte de poids",lieu:"Distanciel",antecedents:"RAS - 2 grossesses",joursPreferes:"",contratSigne:false,cgvAcceptees:false,notes:"",ci:5,
+    mesures:[{date:"16/03/2026",poids:75,taille:166,tourTaille:85,tourHanches:99,tourFessiers:107,tourCuisses:63,tourPoitrine:null,tourDos:95,tourBras:32}]},
+  {id:7,nom:"Anne-Christina Maillet",age:43,email:"maillet.annechristina@gmail.com",telephone:"0688224794",adresse:"7 av 8 mai 1945",codePostal:"91160",ville:"Saulx-les-Chartreux",offre:"Offre trio 4 séances",debut:"05/03/2026",seancesPrevues:4,seancesEffectuees:4,montant:150,paye:150,paiement:"Espèces",statut:"Terminé",objectif:"Prise de masse",lieu:"Domicile",antecedents:"Douleur épaule droite",joursPreferes:"Jeudi 16H45",contratSigne:true,cgvAcceptees:true,notes:"",ci:6,mesures:[]},
+  {id:8,nom:"Anne-Fleur Tricaud",age:40,email:"anne.fleur.t@gmail.com",telephone:"676895915",adresse:"7 av 8 mai 1945",codePostal:"91160",ville:"Saulx-les-Chartreux",offre:"Offre trio 4 séances",debut:"05/03/2026",seancesPrevues:4,seancesEffectuees:0,montant:null,paye:null,paiement:"",statut:"Actif",objectif:"Prise de masse",lieu:"Domicile",antecedents:"RAS",joursPreferes:"Jeudi 16H45",contratSigne:true,cgvAcceptees:true,notes:"",ci:7,mesures:[]},
+  {id:9,nom:"Maela Leguillou",age:40,email:"maelaleguillou@hotmail.com",telephone:"",adresse:"7 av 8 mai 1945",codePostal:"91160",ville:"Saulx-les-Chartreux",offre:"Offre trio 4 séances",debut:"05/03/2026",seancesPrevues:4,seancesEffectuees:0,montant:null,paye:null,paiement:"",statut:"Actif",objectif:"Prise de masse",lieu:"Domicile",antecedents:"Mal de dos / début sciatique",joursPreferes:"Jeudi 16H45",contratSigne:true,cgvAcceptees:false,notes:"",ci:0,mesures:[]}
+];
+
+var clients;
+try{var s=localStorage.getItem('ofc_crm_v5');clients=s?JSON.parse(s):JSON.parse(JSON.stringify(defaultClients));}
+catch(e){clients=JSON.parse(JSON.stringify(defaultClients));}
+var nextId=Math.max.apply(null,clients.map(function(c){return c.id||0}))+1;
+
+function save(){try{localStorage.setItem('ofc_crm_v5',JSON.stringify(clients));}catch(e){}}
+function initials(n){return n.split(' ').slice(0,2).map(function(x){return (x[0]||'').toUpperCase();}).join('');}
+function colFor(c){return COLORS[(c.ci||0)%COLORS.length];}
+function gv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+function gn(id){var v=parseFloat(gv(id));return isNaN(v)?null:v;}
+function today(){return new Date().toLocaleDateString('fr-FR');}
+function formatTel(tel){
+  if(!tel)return null;
+  var t=tel.replace(/\D/g,'');
+  if(t.startsWith('0'))t='33'+t.slice(1);
+  return t;
+}
+
+function showView(id){
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function showList(){renderAll();showView('view-list');}
+function showTab(name){
+  var tabs=['actives','toutes','alertes'];
+  document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',tabs[i]===name);});
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('section-'+name).classList.add('active');
+}
+
+function badge(s){
+  return s==='Actif'?'<span class="badge badge-actif">Actif</span>':'<span class="badge badge-termine">Terminé</span>';
+}
+function progBar(c){
+  if(!c.seancesPrevues)return '';
+  var pct=Math.round(c.seancesEffectuees/c.seancesPrevues*100);
+  var barCol=pct>=100?'#3B6D11':pct>=70?'#C96358':'#378ADD';
+  return '<div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%;background:'+barCol+'"></div></div>';
+}
+
+function renderCard(c){
+  var cl=colFor(c);
+  var seances=c.seancesPrevues?(c.seancesEffectuees+'/'+c.seancesPrevues):'-';
+  var reste=c.seancesPrevues?((c.seancesPrevues-c.seancesEffectuees)+' rest.'):'-';
+  var payeStr=c.paye?c.paye+'€':'—';
+  var payeColor=(c.paye&&c.montant&&c.paye>=c.montant)?'color:#3B6D11':'';
+  return '<div class="card" onclick="showDetail('+c.id+')">'+
+    '<div class="card-header">'+
+    '<div class="avatar" style="background:'+cl.bg+';color:'+cl.tx+'">'+initials(c.nom)+'</div>'+
+    '<div style="flex:1"><div class="cname">'+c.nom+'</div><div class="coffre">'+c.offre+'</div></div>'+
+    badge(c.statut)+'</div>'+progBar(c)+
+    '<div class="stats-row">'+
+    '<div class="stat"><div class="stat-l">Séances</div><div class="stat-v">'+seances+'</div></div>'+
+    '<div class="stat"><div class="stat-l">Restantes</div><div class="stat-v">'+reste+'</div></div>'+
+    '<div class="stat"><div class="stat-l">Payé '+(c.montant&&c.paye>=c.montant?'✅':c.paye?'⏳':'')+'</div><div class="stat-v" style="'+payeColor+'">'+payeStr+(c.montant?' / '+c.montant+'€':'')+'</div></div>'+
+    '</div></div>';
+}
+
+function renderAll(){
+  document.getElementById('section-actives').innerHTML=
+    clients.filter(function(c){return c.statut==='Actif';}).map(renderCard).join('')||'<div class="empty">Aucune cliente active</div>';
+  document.getElementById('section-toutes').innerHTML=clients.map(renderCard).join('');
+  var alertes=clients.filter(function(c){return c.seancesPrevues&&(c.seancesPrevues-c.seancesEffectuees)<=1&&c.statut==='Actif';});
+  document.getElementById('section-alertes').innerHTML=alertes.length?
+    alertes.map(function(c){
+      return '<div class="alert-card" onclick="showDetail('+c.id+')">'+
+        '<div class="alert-name">'+c.nom+'</div>'+
+        '<div class="alert-info">'+(c.seancesPrevues-c.seancesEffectuees)+' séance(s) restante(s) · '+c.offre+'</div></div>';
+    }).join(''):'<div class="empty">Aucune alerte pour le moment</div>';
+}
+
+function showDetail(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  var cl=colFor(c);
+  var pct=c.seancesPrevues?Math.round(c.seancesEffectuees/c.seancesPrevues*100):null;
+  var btnDis=c.seancesPrevues&&c.seancesEffectuees>=c.seancesPrevues?'disabled':'';
+
+  // FIX : lieu + objectif affichés correctement
+  var sub=(c.lieu||'')+(c.lieu&&c.objectif?' · ':'')+(c.objectif||'');
+
+  var html='<div class="detail-head">'+
+    '<div class="avatar" style="width:50px;height:50px;font-size:16px;background:'+cl.bg+';color:'+cl.tx+'">'+initials(c.nom)+'</div>'+
+    '<div><div class="detail-name">'+c.nom+'</div>'+
+    '<div class="detail-sub">'+sub+'</div></div>'+
+    badge(c.statut)+'</div>';
+
+  // Séances
+  if(c.seancesPrevues){
+    html+='<div class="dcard"><div class="dcard-title">Suivi séances</div>'+
+      '<div class="big-num"><span>'+c.seancesEffectuees+'</span><span>/'+c.seancesPrevues+'</span></div>'+
+      progBar(c)+
+      '<div style="display:flex;justify-content:space-between;font-size:10px;color:#B0A8A8;margin-top:3px"><span>0</span><span>'+(pct||0)+'%</span><span>'+c.seancesPrevues+'</span></div>'+
+      '<button class="seance-btn" '+btnDis+' onclick="addSeance('+c.id+')">+ Valider une séance</button>'+
+      '<button class="undo-btn" '+(c.seancesEffectuees<=0?'disabled':'')+' onclick="annulerSeance('+c.id+')">↩ Annuler la dernière séance</button>'+
+      '<button class="whatsapp-btn" onclick="sendWA('+c.id+')">💬 Envoyer rappel WhatsApp</button>'+
+      '</div>';
+  }
+
+  // ── PAIEMENT ────────────────────────────────────────────────
+  if(c.montant){
+    var payePct=c.paye?Math.min(100,Math.round(c.paye/c.montant*100)):0;
+    var payeCol=payePct>=100?'var(--green)':payePct>0?'#C96358':'#E24B4A';
+    var solde=c.montant-(c.paye||0);
+    html+='<div class="dcard"><div class="dcard-title">Paiement</div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
+      '<div><div style="font-size:30px;font-weight:700;color:'+payeCol+';line-height:1">'+(c.paye||0)+'€</div>'+
+      '<div style="font-size:11px;color:var(--text2);margin-top:2px">payé sur '+c.montant+'€</div></div>'+
+      '<div style="font-size:28px">'+(payePct>=100?'✅':payePct>0?'⏳':'❌')+'</div></div>'+
+      '<div class="prog-bar" style="height:8px;margin:0 0 8px"><div class="prog-fill" style="width:'+payePct+'%;background:'+payeCol+'"></div></div>'+
+      (solde>0?'<div style="font-size:12px;color:#C96358;font-weight:600">Reste à encaisser : '+solde+'€</div>':
+               '<div style="font-size:12px;color:var(--green);font-weight:600">✓ Payé en totalité</div>')+
+      (c.paiement?'<div style="font-size:11px;color:var(--text2);margin-top:6px">Mode : '+c.paiement+'</div>':'')+
+      '</div>';
+  }
+
+  // ── MENSURATIONS ────────────────────────────────────────────
+  var mesures=c.mesures||[];
+  html+='<div class="dcard">'+
+    '<div class="dcard-title">Mensurations'+
+    '<button class="dcard-edit" onclick="showMension('+c.id+')">+ Nouvelle mesure</button></div>';
+  if(mesures.length===0){
+    html+='<p style="font-size:12px;color:#B0A8A8">Aucune mensuration enregistrée.</p>';
+  } else {
+    var last=mesures[mesures.length-1];
+    var prev=mesures.length>1?mesures[mesures.length-2]:null;
+    var first=mesures[0];
+    html+='<div style="font-size:11px;color:#7A6E6E;margin-bottom:8px">Dernière mesure : '+last.date+'</div>';
+
+    // Grille valeurs actuelles + diff depuis précédente
+    html+='<div class="m-grid">';
+    MFIELDS.forEach(function(f){
+      if(!last[f.key])return;
+      var diffPrev='',diffTotal='';
+      if(prev&&prev[f.key]){
+        var d=parseFloat((last[f.key]-prev[f.key]).toFixed(1));
+        var sign=d>0?'+':'';
+        var cls=f.key==='poids'||f.key==='tourTaille'||f.key==='tourHanches'||f.key==='tourFessiers'||f.key==='tourCuisses'||f.key==='tourPoitrine'||f.key==='tourBras'
+          ?(d<0?'neg':'pos'):(d>0?'pos':'neg');
+        diffPrev='<div class="m-diff '+cls+'" title="vs mesure précédente">'+sign+d+' '+f.unit+'</div>';
+      }
+      if(mesures.length>1&&first[f.key]&&first!==last){
+        var dt=parseFloat((last[f.key]-first[f.key]).toFixed(1));
+        var signT=dt>0?'+':'';
+        var clsT=f.key==='poids'||f.key==='tourTaille'||f.key==='tourHanches'
+          ?(dt<0?'neg':'pos'):(dt>0?'pos':'neg');
+        diffTotal='<div style="font-size:9px;color:var(--text3);margin-top:1px">Total : <span style="font-weight:700;color:'+(clsT==='neg'?'var(--green)':'#E24B4A')+'">'+signT+dt+' '+f.unit+'</span></div>';
+      }
+      html+='<div class="m-item"><div class="m-label">'+f.label+'</div><div class="m-val">'+last[f.key]+' '+f.unit+'</div>'+diffPrev+diffTotal+'</div>';
+    });
+    html+='</div>';
+
+    // Graphiques pour chaque metric disponible sur 2+ points
+    var chartKeys=[{key:'poids',label:'Poids',unit:'kg'},{key:'tourTaille',label:'Tour taille',unit:'cm'},{key:'tourHanches',label:'Hanches',unit:'cm'},{key:'tourFessiers',label:'Fessiers',unit:'cm'}];
+    chartKeys.forEach(function(f){
+      var data=mesures.filter(function(m){return m[f.key];});
+      if(data.length<2)return;
+      var vals=data.map(function(m){return m[f.key];});
+      var maxV=Math.max.apply(null,vals),minV=Math.min.apply(null,vals),range=maxV-minV||1;
+      html+='<div class="chart-bar-wrap"><div class="chart-label">'+f.label+' ('+f.unit+')</div><div class="chart-bars">';
+      data.forEach(function(m,i){
+        var h=Math.round(((m[f.key]-minV)/range)*50)+10;
+        var isLast=i===data.length-1;
+        html+='<div class="chart-bar-col">'+
+          '<div class="chart-val">'+m[f.key]+'</div>'+
+          '<div class="chart-bar'+(isLast?' latest':'')+'" style="height:'+h+'px"></div>'+
+          '<div class="chart-date">'+m.date.split('/').slice(0,2).join('/')+'</div>'+
+          '</div>';
+      });
+      html+='</div></div>';
+    });
+
+    // Tableau historique — toujours affiché avec bouton modifier
+    var usedKeys=MFIELDS.filter(function(f){return mesures.some(function(m){return m[f.key];});});
+    html+='<div style="margin-top:12px;overflow-x:auto"><table class="histo-table"><thead><tr><th>Date</th>';
+    usedKeys.forEach(function(f){html+='<th>'+f.label+'</th>';});
+    html+='<th></th></tr></thead><tbody>';
+    mesures.slice().reverse().forEach(function(m,ri){
+      var origIdx=mesures.length-1-ri;
+      html+='<tr><td>'+m.date+'</td>';
+      usedKeys.forEach(function(f){html+='<td>'+(m[f.key]?m[f.key]+' '+f.unit:'—')+'</td>';});
+      html+='<td><button onclick="editMension('+c.id+','+origIdx+')" style="background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;padding:2px 6px">✏️</button></td>';
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+  }
+  html+='</div>';
+
+  // ── INFOS COACHING ───────────────────────────────────────────
+  html+='<div class="dcard"><div class="dcard-title">Coaching</div>';
+  var rows1=[['Offre',c.offre],['Début',c.debut],['Jours',c.joursPreferes],['Antécédents',c.antecedents],['Notes',c.notes]];
+  rows1.forEach(function(r){if(r[1])html+='<div class="info-row"><span class="info-l">'+r[0]+'</span><span class="info-v">'+r[1]+'</span></div>';});
+  html+='</div>';
+
+  // ── CONTACT ──────────────────────────────────────────────────
+  html+='<div class="dcard"><div class="dcard-title">Contact & Admin</div>';
+  var adresseStr=(c.adresse?c.adresse+' ':'')+((c.codePostal||c.ville)?(c.codePostal?c.codePostal+' ':'')+c.ville:'');
+  var rows2=[
+    ['Âge',c.age?c.age+' ans':''],
+    ['Email',c.email],
+    ['Téléphone',c.telephone],
+    ['Adresse',adresseStr],
+    ['Contrat',c.contratSigne?'✅ Signé':'❌ Non signé'],
+    ['CGV',c.cgvAcceptees?'✅ Acceptées':'❌ Non acceptées']
+  ];
+  rows2.forEach(function(r){if(r[1])html+='<div class="info-row"><span class="info-l">'+r[0]+'</span><span class="info-v">'+r[1]+'</span></div>';});
+  html+='</div>';
+
+  html+='<button class="action-btn" onclick="showForm('+c.id+')">✏️ Modifier la fiche</button>';
+  html+='<button class="action-btn" onclick="sendAvisWA('+c.id+')">⭐ Demander avis Google à '+c.nom.split(' ')[0]+'</button>';
+  html+='<button class="action-btn" onclick="sendRelanceWA('+c.id+')">🔄 Relancer pour renouvellement</button>';
+  html+='<button class="danger-btn" onclick="deleteClient('+c.id+')">Supprimer cette cliente</button>';
+
+  document.getElementById('detail-content').innerHTML=html;
+  showView('view-detail');
+}
+
+// ── WHATSAPP ──────────────────────────────────────────────────
+function openWA(tel, msg){
+  var t=formatTel(tel);
+  if(!t){
+    navigator.clipboard&&navigator.clipboard.writeText(msg);
+    toast('Numéro manquant — message copié 📋');
+    return;
+  }
+  window.open('https://wa.me/'+t+'?text='+encodeURIComponent(msg));
+}
+
+function sendWA(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  var reste=c.seancesPrevues?(c.seancesPrevues-c.seancesEffectuees):null;
+  var msg='Bonjour '+c.nom.split(' ')[0]+' 😊\n\n';
+  msg+='Petit point sur ton coaching :\n';
+  msg+='📋 Séances : '+c.seancesEffectuees+(c.seancesPrevues?'/'+c.seancesPrevues:'');
+  if(reste!==null)msg+=' ('+reste+' restante'+(reste>1?'s':'')+')\n';
+  else msg+='\n';
+  msg+='💪 Continue comme ça, tu assures !';
+  openWA(c.telephone, msg);
+}
+
+function sendAvisWA(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  var msg='Bonjour '+c.nom.split(' ')[0]+' 😊\n\nJ\'espère que tu vas bien ! Tu serais disponible pour me laisser un avis Google ? Ça m\'aide énormément à me faire connaître 🙏\n\n[Colle ici ton lien Google]\n\nMerci beaucoup ! 💛';
+  openWA(c.telephone, msg);
+}
+
+function sendRelanceWA(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  var msg='Bonjour '+c.nom.split(' ')[0]+' 😊\n\nTon coaching touche à sa fin — j\'ai adoré travailler avec toi et je vois de vrais progrès ! 💪\n\nTu veux qu\'on continue ensemble ? Je t\'explique les options disponibles si tu es intéressée !';
+  openWA(c.telephone, msg);
+}
+
+// ── SÉANCES ───────────────────────────────────────────────────
+function addSeance(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c||!c.seancesPrevues||c.seancesEffectuees>=c.seancesPrevues)return;
+  if(!confirm('Valider une séance pour '+c.nom.split(' ')[0]+' ?\n'+c.seancesEffectuees+' → '+(c.seancesEffectuees+1)+' / '+c.seancesPrevues))return;
+  c.seancesEffectuees++;save();
+  var reste=c.seancesPrevues-c.seancesEffectuees;
+  toast('Séance validée — '+c.seancesEffectuees+'/'+c.seancesPrevues);
+  if(reste<=2&&reste>=0) notifAlerte(c.nom, reste);
+  showDetail(id);
+}
+
+function annulerSeance(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c||c.seancesEffectuees<=0)return;
+  if(!confirm('Annuler la dernière séance de '+c.nom.split(' ')[0]+' ?\n'+(c.seancesEffectuees)+' → '+(c.seancesEffectuees-1)+' / '+c.seancesPrevues))return;
+  c.seancesEffectuees--;save();
+  toast('Séance annulée — '+c.seancesEffectuees+'/'+c.seancesPrevues);
+  showDetail(id);
+}
+
+// ── MENSURATIONS ──────────────────────────────────────────────
+function showMension(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  document.getElementById('mension-back').onclick=function(){showDetail(id);};
+  var html='<div style="font-size:15px;font-weight:700;margin-bottom:4px">Nouvelle mesure — '+c.nom.split(' ')[0]+'</div>';
+  // FIX : date saisie manuellement, pré-remplie avec aujourd'hui
+  html+='<div class="form-group" style="margin-top:12px"><label class="form-label">Date de la mesure</label>'+
+    '<input class="form-input" id="mn-date" type="text" placeholder="JJ/MM/AAAA" value="'+today()+'"></div>';
+  html+='<div class="form-section-title">Mesures</div>';
+  for(var i=0;i<MFIELDS.length;i+=2){
+    html+='<div class="form-row">';
+    [MFIELDS[i],MFIELDS[i+1]].forEach(function(f){
+      if(!f)return;
+      var last=c.mesures.length?c.mesures[c.mesures.length-1][f.key]:'';
+      html+='<div class="form-group"><label class="form-label">'+f.label+' ('+f.unit+')</label>'+
+        '<input class="form-input" id="mn-'+f.key+'" type="number" step="0.1" placeholder="'+(last||'')+'"></div>';
+    });
+    html+='</div>';
+  }
+  html+='<button class="save-btn" onclick="saveMension('+id+')">Enregistrer les mesures</button>';
+  document.getElementById('mension-content').innerHTML=html;
+  showView('view-mension');
+}
+
+function saveMension(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  var dateVal=gv('mn-date')||today();
+  var m={date:dateVal};
+  var hasVal=false;
+  MFIELDS.forEach(function(f){var v=gn('mn-'+f.key);m[f.key]=v;if(v)hasVal=true;});
+  if(!hasVal){toast('Saisis au moins une valeur');return;}
+  if(!c.mesures)c.mesures=[];
+  c.mesures.push(m);save();
+  toast('Mesures enregistrées !');
+  showDetail(id);
+}
+
+function editMension(id,idx){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c||!c.mesures||!c.mesures[idx])return;
+  var m=c.mesures[idx];
+  document.getElementById('mension-back').onclick=function(){showDetail(id);};
+  var html='<div style="font-size:15px;font-weight:700;margin-bottom:4px">Modifier mesure — '+c.nom.split(' ')[0]+'</div>';
+  html+='<div class="form-group" style="margin-top:12px"><label class="form-label">Date de la mesure</label>'+
+    '<input class="form-input" id="mn-date" type="text" placeholder="JJ/MM/AAAA" value="'+m.date+'"></div>';
+  html+='<div class="form-section-title">Mesures</div>';
+  for(var i=0;i<MFIELDS.length;i+=2){
+    html+='<div class="form-row">';
+    [MFIELDS[i],MFIELDS[i+1]].forEach(function(f){
+      if(!f)return;
+      html+='<div class="form-group"><label class="form-label">'+f.label+' ('+f.unit+')</label>'+
+        '<input class="form-input" id="mn-'+f.key+'" type="number" step="0.1" value="'+(m[f.key]||'')+'"></div>';
+    });
+    html+='</div>';
+  }
+  html+='<button class="save-btn" onclick="saveMensionEdit('+id+','+idx+')">Enregistrer les modifications</button>';
+  html+='<button class="danger-btn" style="margin-top:8px" onclick="deleteMension('+id+','+idx+')">Supprimer cette mesure</button>';
+  document.getElementById('mension-content').innerHTML=html;
+  showView('view-mension');
+}
+
+function saveMensionEdit(id,idx){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c||!c.mesures||!c.mesures[idx])return;
+  var dateVal=gv('mn-date')||today();
+  var m={date:dateVal};var hasVal=false;
+  MFIELDS.forEach(function(f){var v=gn('mn-'+f.key);m[f.key]=v;if(v)hasVal=true;});
+  if(!hasVal){toast('Saisis au moins une valeur');return;}
+  c.mesures[idx]=m;save();
+  toast('Mesure mise à jour !');showDetail(id);
+}
+
+function deleteMension(id,idx){
+  if(!confirm('Supprimer cette mesure ?'))return;
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c||!c.mesures)return;
+  c.mesures.splice(idx,1);save();
+  toast('Mesure supprimée');showDetail(id);
+}
+
+// ── FORMULAIRE CLIENT ─────────────────────────────────────────
+function showForm(id){
+  var c=id?clients.find(function(x){return x.id===id;}):null;
+  var isNew=!c;
+  document.getElementById('form-back').onclick=function(){id?showDetail(id):showList();};
+  var html='<div style="font-size:15px;font-weight:700;margin-bottom:14px">'+(isNew?'Nouvelle cliente':'Modifier — '+(c.nom||''))+'</div>';
+  html+='<div class="form-section-title">Identité</div>';
+  html+='<div class="form-group"><label class="form-label">Prénom et nom *</label><input class="form-input" id="f-nom" type="text" value="'+(c?c.nom||'':'')+'"></div>';
+  html+='<div class="form-row">'+
+    '<div class="form-group"><label class="form-label">Âge</label><input class="form-input" id="f-age" type="number" min="0" max="99" value="'+(c&&c.age?c.age:'')+'"></div>'+
+    '<div class="form-group"><label class="form-label">Téléphone</label><input class="form-input" id="f-tel" type="tel" placeholder="06 xx xx xx xx" value="'+(c?c.telephone||'':'')+'"></div>'+
+    '</div>';
+  html+='<div class="form-group"><label class="form-label">Email</label><input class="form-input" id="f-email" type="email" placeholder="email@exemple.fr" value="'+(c?c.email||'':'')+'"></div>';
+  html+='<div class="form-group"><label class="form-label">Adresse</label><input class="form-input" id="f-adresse" type="text" placeholder="N° et rue" value="'+(c?c.adresse||'':'')+'"></div>';
+  html+='<div class="form-row">'+
+    '<div class="form-group"><label class="form-label">Code postal</label><input class="form-input" id="f-cp" type="text" inputmode="numeric" placeholder="75000" value="'+(c?c.codePostal||'':'')+'"></div>'+
+    '<div class="form-group"><label class="form-label">Ville</label><input class="form-input" id="f-ville" type="text" placeholder="Paris" value="'+(c?c.ville||'':'')+'"></div>'+
+    '</div>';
+  html+='<div class="form-section-title">Coaching</div>';
+  html+='<div class="form-group"><label class="form-label">Antécédents / Points de santé</label><input class="form-input" id="f-ant" type="text" placeholder="Blessures, douleurs, grossesses..." value="'+(c?c.antecedents||'':'')+'"></div>';
+  html+='<div class="form-group"><label class="form-label">Jours préférés</label><input class="form-input" id="f-jours" type="text" placeholder="Lundi 10H, Jeudi 12H..." value="'+(c?c.joursPreferes||'':'')+'"></div>';
+  html+='<div class="form-row">'+
+    '<div class="form-group"><label class="form-label">Objectif</label>'+
+    '<select class="form-input" id="f-obj"><option value="">—</option>'+
+    ['Perte de poids','Prise de masse','Remise en forme','Post-partum','Fessiers','Tonification'].map(function(o){return '<option'+(c&&c.objectif===o?' selected':'')+'>'+o+'</option>';}).join('')+
+    '</select></div>'+
+    '<div class="form-group"><label class="form-label">Lieu</label>'+
+    '<select class="form-input" id="f-lieu"><option value="">—</option>'+
+    ['Domicile','Distanciel','Hybride','Extérieur'].map(function(o){return '<option'+(c&&c.lieu===o?' selected':'')+'>'+o+'</option>';}).join('')+
+    '</select></div></div>';
+
+  html+='<div class="form-section-title">Offre et paiement</div>';
+  html+='<div class="form-group"><label class="form-label">Offre</label><input class="form-input" id="f-offre" value="'+(c?c.offre||'':'')+'"></div>';
+  html+='<div class="form-row">'+
+    '<div class="form-group"><label class="form-label">Date début</label><input class="form-input" id="f-debut" placeholder="JJ/MM/AAAA" value="'+(c?c.debut||'':'')+'"></div>'+
+    // FIX : statut sélectionné correctement
+    '<div class="form-group"><label class="form-label">Statut</label><select class="form-input" id="f-statut">'+
+    '<option'+((!c||c.statut==='Actif')?' selected':'')+'>Actif</option>'+
+    '<option'+(c&&c.statut==='Terminé'?' selected':'')+'>Terminé</option>'+
+    '</select></div></div>';
+  html+='<div class="form-row">'+
+    '<div class="form-group"><label class="form-label">Séances prévues</label><input class="form-input" id="f-sp" type="number" min="0" value="'+(c&&c.seancesPrevues?c.seancesPrevues:'')+'"></div>'+
+    '<div class="form-group"><label class="form-label">Séances effectuées</label><input class="form-input" id="f-se" type="number" min="0" value="'+(c&&c.seancesEffectuees?c.seancesEffectuees:'')+'"></div></div>';
+  html+='<div class="form-row">'+
+    '<div class="form-group"><label class="form-label">Montant €</label><input class="form-input" id="f-mont" type="number" value="'+(c&&c.montant?c.montant:'')+'"></div>'+
+    '<div class="form-group"><label class="form-label">Payé €</label><input class="form-input" id="f-paye" type="number" value="'+(c&&c.paye?c.paye:'')+'"></div></div>';
+  html+='<div class="form-group"><label class="form-label">Mode paiement</label>'+
+    '<select class="form-input" id="f-paiem">'+
+    ['Virement','Espèces','PayPal','Stripe','Autre'].map(function(o){return '<option'+(c&&c.paiement===o?' selected':'')+'>'+o+'</option>';}).join('')+
+    '</select></div>';
+  html+='<div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="f-notes" value="'+(c?c.notes||'':'')+'"></div>';
+  html+='<div class="form-section-title">Administratif</div>';
+  html+='<div class="form-row">'+
+    '<div class="form-group"><label class="form-label">Contrat signé</label><select class="form-input" id="f-contrat">'+
+    '<option value="oui"'+(c&&c.contratSigne?' selected':'')+'>Oui</option>'+
+    '<option value="non"'+(!c||!c.contratSigne?' selected':'')+'>Non</option>'+
+    '</select></div>'+
+    '<div class="form-group"><label class="form-label">CGV acceptées</label><select class="form-input" id="f-cgv">'+
+    '<option value="oui"'+(c&&c.cgvAcceptees?' selected':'')+'>Oui</option>'+
+    '<option value="non"'+(!c||!c.cgvAcceptees?' selected':'')+'>Non</option>'+
+    '</select></div></div>';
+  html+='<button class="save-btn" onclick="saveForm('+(id||'null')+')">Enregistrer</button>';
+  if(!isNew)html+='<button class="danger-btn" style="margin-top:8px" onclick="deleteClient('+id+')">Supprimer cette cliente</button>';
+  html+='<div style="height:20px"></div>';
+  document.getElementById('form-content').innerHTML=html;
+  showView('view-form');
+}
+
+function saveForm(id){
+  var nom=gv('f-nom');
+  if(!nom){toast('Prénom et nom requis');return;}
+  var sp=gn('f-sp'),se=gn('f-se');
+  if(id){
+    var c=clients.find(function(x){return x.id===id;});
+    if(c){
+      c.nom=nom;c.age=gn('f-age');c.email=gv('f-email');c.telephone=gv('f-tel');
+      c.adresse=gv('f-adresse');c.codePostal=gv('f-cp');c.ville=gv('f-ville');
+      c.objectif=gv('f-obj');c.lieu=gv('f-lieu');
+      c.antecedents=gv('f-ant');c.joursPreferes=gv('f-jours');
+      c.offre=gv('f-offre');c.debut=gv('f-debut');c.statut=gv('f-statut');
+      c.seancesPrevues=sp;c.seancesEffectuees=se||0;
+      c.montant=gn('f-mont');c.paye=gn('f-paye');c.paiement=gv('f-paiem');c.notes=gv('f-notes');
+      c.contratSigne=gv('f-contrat')==='oui';c.cgvAcceptees=gv('f-cgv')==='oui';
+    }
+    save();toast('Fiche mise à jour');showDetail(id);
+  }else{
+    var nc={id:nextId++,nom:nom,age:gn('f-age'),email:gv('f-email'),telephone:gv('f-tel'),
+      adresse:gv('f-adresse'),codePostal:gv('f-cp'),ville:gv('f-ville'),
+      objectif:gv('f-obj'),lieu:gv('f-lieu'),
+      antecedents:gv('f-ant'),joursPreferes:gv('f-jours'),
+      contratSigne:gv('f-contrat')==='oui',cgvAcceptees:gv('f-cgv')==='oui',
+      offre:gv('f-offre'),debut:gv('f-debut'),statut:gv('f-statut'),
+      seancesPrevues:sp,seancesEffectuees:se||0,
+      montant:gn('f-mont'),paye:gn('f-paye'),paiement:gv('f-paiem'),notes:gv('f-notes'),
+      ci:clients.length%COLORS.length,mesures:[]};
+    clients.push(nc);save();toast('Cliente ajoutée !');showDetail(nc.id);
+  }
+}
+
+function deleteClient(id){
+  if(!confirm('Supprimer cette cliente ?'))return;
+  clients=clients.filter(function(c){return c.id!==id;});
+  save();toast('Cliente supprimée');showList();
+}
+
+function toast(msg){
+  var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2500);
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(function(){});
+}
+
+function updateNotifBtn(){
+  var btn=document.getElementById('notif-btn');
+  if(!btn)return;
+  var granted=('Notification' in window)&&Notification.permission==='granted';
+  btn.classList.toggle('on', granted);
+  btn.title=granted?'Alertes activées ✓':'Activer les alertes iPhone';
+}
+
+function toggleNotif(){
+  if(!('Notification' in window)){toast('Notifications non supportées sur ce navigateur');return;}
+  if(Notification.permission==='granted'){toast('Alertes déjà activées ✓');return;}
+  Notification.requestPermission().then(function(p){
+    updateNotifBtn();
+    if(p==='granted'){toast('Alertes activées ✓');checkAlertesNotif();}
+    else toast('Permission refusée — active dans Réglages');
+  });
+}
+
+function notifAlerte(nom, reste){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  var msg=reste===0?'Toutes les séances sont terminées !'
+    :'Plus que '+reste+' séance'+(reste>1?'s':'')+'  restante'+(reste>1?'s':'')+'  !';
+  navigator.serviceWorker.ready.then(function(reg){
+    reg.showNotification('OFC Coach — '+nom.split(' ')[0], {body:msg,tag:'seance-'+nom});
+  }).catch(function(){
+    new Notification('OFC Coach — '+nom.split(' ')[0], {body:msg});
+  });
+}
+
+function checkAlertesNotif(){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  var alertes=clients.filter(function(c){
+    return c.seancesPrevues&&(c.seancesPrevues-c.seancesEffectuees)<=2&&c.statut==='Actif';
+  });
+  if(!alertes.length)return;
+  navigator.serviceWorker.ready.then(function(reg){
+    alertes.forEach(function(c){
+      var reste=c.seancesPrevues-c.seancesEffectuees;
+      reg.showNotification('OFC Coach ⚠️ '+c.nom.split(' ')[0],{
+        body:reste===0?'Pack terminé — penser au renouvellement':'Plus que '+reste+' séance'+(reste>1?'s':'')+' restante'+(reste>1?'s':''),
+        tag:'alerte-'+c.id
+      });
+    });
+  }).catch(function(){});
+}
+
+function checkMensurationReminder(){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  var now=new Date();
+  clients.filter(function(c){return c.statut==='Actif'&&c.mesures&&c.mesures.length;}).forEach(function(c){
+    var last=c.mesures[c.mesures.length-1];
+    var p=last.date.split('/');
+    if(p.length!==3)return;
+    var lastDate=new Date(p[2],p[1]-1,p[0]);
+    var jours=Math.round((now-lastDate)/(1000*60*60*24));
+    if(jours>=28){
+      navigator.serviceWorker.ready.then(function(reg){
+        reg.showNotification('OFC Coach 📏 '+c.nom.split(' ')[0],{
+          body:'Rappel mensurations — dernier relevé il y a '+jours+' j',
+          tag:'mensuration-'+c.id
+        });
+      }).catch(function(){});
+    }
+  });
+}
+
+document.getElementById('today-date').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+updateNotifBtn();
+renderAll();
+checkAlertesNotif();
+checkMensurationReminder();
+</script>
+</body>
+</html>
