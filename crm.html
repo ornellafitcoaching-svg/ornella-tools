@@ -203,7 +203,14 @@ var defaultClients = [
 ];
 
 var clients;
-try{var s=localStorage.getItem('ofc_crm_v5');clients=s?JSON.parse(s):JSON.parse(JSON.stringify(defaultClients));}
+try{
+  var s=localStorage.getItem('ofc_crm_v5');
+  // Récupère les données v4 si v5 est vide (migration automatique)
+  if(!s){var s4=localStorage.getItem('ofc_crm_v4');if(s4){s=s4;localStorage.setItem('ofc_crm_v5',s4);}}
+  // Récupère aussi ofc_crm_v3 si nécessaire
+  if(!s){var s3=localStorage.getItem('ofc_crm_v3');if(s3){s=s3;localStorage.setItem('ofc_crm_v5',s3);}}
+  clients=s?JSON.parse(s):JSON.parse(JSON.stringify(defaultClients));
+}
 catch(e){clients=JSON.parse(JSON.stringify(defaultClients));}
 var nextId=Math.max.apply(null,clients.map(function(c){return c.id||0}))+1;
 
