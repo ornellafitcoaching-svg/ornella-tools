@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="OFC Coach">
+<meta name="theme-color" content="#C96358">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
 <title>OFC Coach</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -128,8 +131,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
     <div><div class="app-title">Ornella Fit Coaching</div><div class="app-date" id="today-date"></div></div>
     <div style="display:flex;align-items:center;gap:6px">
       <button class="notif-btn" id="notif-btn" onclick="toggleNotif()" title="Alertes iPhone">🔔</button>
+      <button class="notif-btn" onclick="showBackup()" title="Sauvegarde">💾</button>
       <a href="facturation.html" style="background:none;border:1.5px solid var(--accent);color:var(--accent);border-radius:20px;padding:6px 13px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap">🧾 Factures</a>
       <button class="btn-add" onclick="showForm(null)">+ Ajouter</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
     </div>
   </div>
   <div class="tabs">
@@ -376,40 +381,43 @@ function showDetail(id){
   if(mesures.length===0){
     html+='<p style="font-size:12px;color:#B0A8A8">Aucune mensuration enregistrée.</p>';
   } else {
-    var last=mesures[mesures.length-1];
-    var prev=mesures.length>1?mesures[mesures.length-2]:null;
-    var first=mesures[0];
-    html+='<div style="font-size:11px;color:#7A6E6E;margin-bottom:8px">Dernière mesure : '+last.date+'</div>';
+    var sorted=mesures.slice().sort(function(a,b){
+      var pa=a.date.split('/'),pb=b.date.split('/');
+      return new Date(+pa[2],+pa[1]-1,+pa[0])-new Date(+pb[2],+pb[1]-1,+pb[0]);
+    });
+    html+='<div style="font-size:11px;color:#7A6E6E;margin-bottom:8px">Dernière mesure : '+sorted[sorted.length-1].date+'</div>';
 
     // Grille valeurs — total depuis début en grand, vs précédente en petit
     var lossFields=['poids','tourTaille','tourHanches','tourFessiers','tourCuisses','tourPoitrine','tourDos','tourBras'];
     html+='<div class="m-grid">';
     MFIELDS.forEach(function(f){
-      if(!last[f.key])return;
+      var withField=sorted.filter(function(m){return m[f.key]!=null;});
+      if(!withField.length)return;
+      var lastVal=withField[withField.length-1][f.key];
+      var prevVal=withField.length>1?withField[withField.length-2][f.key]:null;
+      var firstVal=withField[0][f.key];
       var isLoss=lossFields.indexOf(f.key)>=0;
       var totalHtml='',prevHtml='';
-      // TOTAL depuis première mesure (affiché en grand, couleur forte)
-      if(mesures.length>1&&first[f.key]&&first!==last){
-        var dt=parseFloat((last[f.key]-first[f.key]).toFixed(1));
+      if(withField.length>1){
+        var dt=parseFloat((lastVal-firstVal).toFixed(1));
         var signT=dt>0?'+':'';
         var goodT=isLoss?(dt<0):(dt>0);
         totalHtml='<div class="m-diff '+(goodT?'neg':'pos')+'">'+signT+dt+' '+f.unit+' <span style="font-size:9px;opacity:.65">depuis début</span></div>';
       }
-      // Vs mesure précédente (petit, secondaire)
-      if(prev&&prev[f.key]){
-        var d=parseFloat((last[f.key]-prev[f.key]).toFixed(1));
+      if(prevVal!==null){
+        var d=parseFloat((lastVal-prevVal).toFixed(1));
         var signP=d>0?'+':'';
         var goodP=isLoss?(d<0):(d>0);
         prevHtml='<div style="font-size:10px;margin-top:2px;color:'+(goodP?'var(--green)':'var(--text3)')+'">vs préc. : '+signP+d+' '+f.unit+'</div>';
       }
-      html+='<div class="m-item"><div class="m-label">'+f.label+'</div><div class="m-val">'+last[f.key]+' '+f.unit+'</div>'+totalHtml+prevHtml+'</div>';
+      html+='<div class="m-item"><div class="m-label">'+f.label+'</div><div class="m-val">'+lastVal+' '+f.unit+'</div>'+totalHtml+prevHtml+'</div>';
     });
     html+='</div>';
 
-    // Graphiques pour chaque metric disponible sur 2+ points
+    // Graphiques triés chronologiquement
     var chartKeys=[{key:'poids',label:'Poids',unit:'kg'},{key:'tourTaille',label:'Tour taille',unit:'cm'},{key:'tourHanches',label:'Hanches',unit:'cm'},{key:'tourFessiers',label:'Fessiers',unit:'cm'}];
     chartKeys.forEach(function(f){
-      var data=mesures.filter(function(m){return m[f.key];});
+      var data=sorted.filter(function(m){return m[f.key]!=null;});
       if(data.length<2)return;
       var vals=data.map(function(m){return m[f.key];});
       var maxV=Math.max.apply(null,vals),minV=Math.min.apply(null,vals),range=maxV-minV||1;
@@ -426,15 +434,15 @@ function showDetail(id){
       html+='</div></div>';
     });
 
-    // Tableau historique — toujours affiché avec bouton modifier
-    var usedKeys=MFIELDS.filter(function(f){return mesures.some(function(m){return m[f.key];});});
+    // Tableau historique trié par date décroissante
+    var usedKeys=MFIELDS.filter(function(f){return mesures.some(function(m){return m[f.key]!=null;});});
     html+='<div style="margin-top:12px;overflow-x:auto"><table class="histo-table"><thead><tr><th>Date</th>';
     usedKeys.forEach(function(f){html+='<th>'+f.label+'</th>';});
     html+='<th></th></tr></thead><tbody>';
-    mesures.slice().reverse().forEach(function(m,ri){
-      var origIdx=mesures.length-1-ri;
+    sorted.slice().reverse().forEach(function(m){
+      var origIdx=mesures.indexOf(m);
       html+='<tr><td>'+m.date+'</td>';
-      usedKeys.forEach(function(f){html+='<td>'+(m[f.key]?m[f.key]+' '+f.unit:'—')+'</td>';});
+      usedKeys.forEach(function(f){html+='<td>'+(m[f.key]!=null?m[f.key]+' '+f.unit:'—')+'</td>';});
       html+='<td><button onclick="editMension('+c.id+','+origIdx+')" style="background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;padding:2px 6px">✏️</button></td>';
       html+='</tr>';
     });
@@ -773,14 +781,62 @@ function checkAlertesNotif(){
   }).catch(function(){});
 }
 
+function showBackup(){
+  if(confirm('Exporter les données ?\n\nChoisir "Annuler" pour importer à la place.')){
+    exportData();
+  } else {
+    document.getElementById('import-file').click();
+  }
+}
+
+function exportData(){
+  var json=JSON.stringify({version:'ofc-crm-v1',date:new Date().toISOString(),clients:clients},null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  var d=new Date().toLocaleDateString('fr-FR').replace(/\//g,'-');
+  a.href=url;a.download='ofc-crm-'+d+'.json';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast('Données exportées ✓');
+}
+
+function importData(e){
+  var file=e.target.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var data=JSON.parse(ev.target.result);
+      var imported=data.clients||data;
+      if(!Array.isArray(imported)||!imported.length)throw new Error();
+      if(!confirm('Restaurer '+imported.length+' cliente(s) ?\n\n⚠️ Les données actuelles seront remplacées.')){
+        e.target.value='';return;
+      }
+      clients=imported;
+      nextId=Math.max.apply(null,clients.map(function(c){return c.id||0}))+1;
+      save();renderAll();
+      toast('Données restaurées ✓ ('+imported.length+' clientes)');
+    }catch(err){
+      toast('Fichier invalide — importation annulée');
+    }
+    e.target.value='';
+  };
+  reader.readAsText(file);
+}
+
 function checkMensurationReminder(){
   if(!('Notification' in window)||Notification.permission!=='granted')return;
   var now=new Date();
   clients.filter(function(c){return c.statut==='Actif'&&c.mesures&&c.mesures.length;}).forEach(function(c){
-    var last=c.mesures[c.mesures.length-1];
+    var sorted=c.mesures.slice().sort(function(a,b){
+      var pa=a.date.split('/'),pb=b.date.split('/');
+      return new Date(+pb[2],+pb[1]-1,+pb[0])-new Date(+pa[2],+pa[1]-1,+pa[0]);
+    });
+    var last=sorted[0];
     var p=last.date.split('/');
     if(p.length!==3)return;
-    var lastDate=new Date(p[2],p[1]-1,p[0]);
+    var lastDate=new Date(+p[2],+p[1]-1,+p[0]);
     var jours=Math.round((now-lastDate)/(1000*60*60*24));
     if(jours>=28){
       navigator.serviceWorker.ready.then(function(reg){
