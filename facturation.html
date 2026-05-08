@@ -164,6 +164,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="offre-btn" onclick="addOffre('Accompagnement nutrition — 1 mois',1,40)"><strong>+40€</strong>Option nutrition</button>
     </div>
 
+    <div style="font-size:10px;font-weight:700;color:#C96358;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 5px">✏️ Sur mesure</div>
+    <div class="offres-grid" style="margin-bottom:12px">
+      <button class="offre-btn" onclick="addPresta('',1,0)" style="grid-column:span 3;background:#F5F2EE;border:1.5px dashed #C96358;color:#C96358;text-align:center"><strong>+ Offre sur mesure</strong>Description et prix libres</button>
+    </div>
+
     <div class="presta-header">
       <span>Description</span><span>Qté</span><span>Prix unit.</span><span>Total</span><span></span>
     </div>
@@ -254,6 +259,13 @@ function chargerClient() {
   document.getElementById('client-email').value = parts[1]||'';
   document.getElementById('client-tel').value = parts[2]||'';
   document.getElementById('client-adresse').value = parts[3]||'';
+  var offre = parts[4]||'';
+  var montant = parseFloat(parts[5])||0;
+  if(offre){
+    document.getElementById('presta-list').innerHTML='';
+    prestaCount=0;
+    addPresta(offre, 1, montant);
+  }
 }
 
 function addOffre(desc, qty, prix) { addPresta(desc, qty, prix); }
@@ -575,7 +587,7 @@ function populateClientSelect(){
   crmClients.forEach(function(c){
     var opt=document.createElement('option');
     var adresse=(c.adresse||'')+(c.codePostal?' '+c.codePostal:'')+(c.ville?' '+c.ville:'');
-    opt.value=(c.nom||'')+'|'+(c.email||'')+'|'+(c.telephone||'')+'|'+adresse.trim();
+    opt.value=(c.nom||'')+'|'+(c.email||'')+'|'+(c.telephone||'')+'|'+adresse.trim()+'|'+(c.offre||'')+'|'+(c.montant||'');
     opt.textContent=c.nom||'';
     sel.appendChild(opt);
   });
