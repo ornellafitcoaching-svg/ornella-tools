@@ -207,6 +207,11 @@ try{var s=localStorage.getItem('ofc_crm_v5');clients=s?JSON.parse(s):JSON.parse(
 catch(e){clients=JSON.parse(JSON.stringify(defaultClients));}
 var nextId=Math.max.apply(null,clients.map(function(c){return c.id||0}))+1;
 
+function parseDateFR(d){var p=d?d.split('/'):[];return p.length===3?new Date(p[2],p[1]-1,p[0]):new Date(0);}
+function sortMesures(arr){arr.sort(function(a,b){return parseDateFR(a.date)-parseDateFR(b.date);});}
+// Migration : trie les mesures existantes en localStorage au chargement
+clients.forEach(function(c){if(c.mesures&&c.mesures.length>1)sortMesures(c.mesures);});
+
 function save(){try{localStorage.setItem('ofc_crm_v5',JSON.stringify(clients));}catch(e){}}
 function initials(n){return n.split(' ').slice(0,2).map(function(x){return (x[0]||'').toUpperCase();}).join('');}
 function colFor(c){return COLORS[(c.ci||0)%COLORS.length];}
@@ -513,7 +518,7 @@ function saveMension(id){
   MFIELDS.forEach(function(f){var v=gn('mn-'+f.key);m[f.key]=v;if(v)hasVal=true;});
   if(!hasVal){toast('Saisis au moins une valeur');return;}
   if(!c.mesures)c.mesures=[];
-  c.mesures.push(m);save();
+  c.mesures.push(m);sortMesures(c.mesures);save();
   toast('Mesures enregistrées !');
   showDetail(id);
 }
@@ -549,7 +554,7 @@ function saveMensionEdit(id,idx){
   var m={date:dateVal};var hasVal=false;
   MFIELDS.forEach(function(f){var v=gn('mn-'+f.key);m[f.key]=v;if(v)hasVal=true;});
   if(!hasVal){toast('Saisis au moins une valeur');return;}
-  c.mesures[idx]=m;save();
+  c.mesures[idx]=m;sortMesures(c.mesures);save();
   toast('Mesure mise à jour !');showDetail(id);
 }
 
