@@ -112,22 +112,55 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="card">
     <div class="card-title">Prestations</div>
     <div style="font-size:11px;font-weight:700;color:#7A6E6E;margin-bottom:7px">⚡ OFFRES RAPIDES</div>
+
+    <div style="font-size:10px;font-weight:700;color:#C96358;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">🏠 Domicile — Séances</div>
     <div class="offres-grid">
-      <button class="offre-btn" onclick="addOffre('Séance découverte coaching domicile',1,50)"><strong>50€</strong>Séance découverte</button>
-      <button class="offre-btn" onclick="addOffre('Coaching domicile 1×/semaine — 1 mois',4,65)"><strong>260€</strong>Dom. 1×/sem (1 mois)</button>
-      <button class="offre-btn" onclick="addOffre('Coaching domicile 2×/semaine — 1 mois',8,60)"><strong>480€</strong>Dom. 2×/sem (1 mois)</button>
-      <button class="offre-btn" onclick="addOffre('Coaching domicile 3×/semaine — 1 mois',12,55)"><strong>660€</strong>Dom. 3×/sem (1 mois)</button>
-      <button class="offre-btn" onclick="addOffre('Forfait 3 séances coaching domicile',3,70)"><strong>210€</strong>Forfait 3 séances</button>
-      <button class="offre-btn" onclick="addOffre('Forfait 6 séances coaching domicile',6,65)"><strong>390€</strong>Forfait 6 séances</button>
-      <button class="offre-btn" onclick="addOffre('Forfait 10 séances coaching domicile',10,65)"><strong>650€</strong>Forfait 10 séances</button>
-      <button class="offre-btn" onclick="addOffre('Forfait 20 séances coaching domicile',20,55)"><strong>1100€</strong>Forfait 20 séances</button>
-      <button class="offre-btn" onclick="addOffre('Forfait 24 séances coaching domicile',24,50)"><strong>1200€</strong>Forfait 24 séances</button>
-      <button class="offre-btn" onclick="addOffre('Programme Hybride Performance',1,169)"><strong>169€/mois</strong>Hybride Performance</button>
-      <button class="offre-btn" onclick="addOffre('Programme Hybride Essentielle',1,99)"><strong>99€/mois</strong>Hybride Essentielle</button>
-      <button class="offre-btn" onclick="addOffre('Programme distanciel avec suivi — 1 mois',1,119)"><strong>119€</strong>Distanciel 1 mois</button>
-      <button class="offre-btn" onclick="addOffre('Programme distanciel avec suivi — 3 mois',1,297)"><strong>297€</strong>Distanciel 3 mois</button>
-      <button class="offre-btn" onclick="addOffre('Programme distanciel avec suivi — 6 mois',1,534)"><strong>534€</strong>Distanciel 6 mois</button>
+      <button class="offre-btn" onclick="addOffre('Séance découverte coaching domicile',1,50)"><strong>50€</strong>Découverte</button>
+      <button class="offre-btn" onclick="addOffre('Séance coaching domicile',1,70)"><strong>70€</strong>Séance unité</button>
+      <button class="offre-btn" onclick="addOffre('Coaching domicile 1×/semaine — 1 mois',4,65)"><strong>260€</strong>1×/sem 1 mois</button>
+      <button class="offre-btn" onclick="addOffre('Coaching domicile 2×/semaine — 1 mois',8,60)"><strong>480€</strong>2×/sem 1 mois</button>
+      <button class="offre-btn" onclick="addOffre('Coaching domicile 3×/semaine — 1 mois',12,55)"><strong>660€</strong>3×/sem 1 mois</button>
+    </div>
+
+    <div style="font-size:10px;font-weight:700;color:#C96358;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 5px">👥 Duo — par personne/mois</div>
+    <div class="offres-grid">
+      <button class="offre-btn" onclick="addOffre('Coaching duo 1×/semaine — 1 mois',1,200)"><strong>200€</strong>Duo 1×/sem</button>
+      <button class="offre-btn" onclick="addOffre('Coaching duo 2×/semaine — 1 mois',1,340)"><strong>340€</strong>Duo 2×/sem</button>
+      <button class="offre-btn" onclick="addOffre('Coaching duo 3×/semaine — 1 mois',1,480)"><strong>480€</strong>Duo 3×/sem</button>
+    </div>
+
+    <div style="font-size:10px;font-weight:700;color:#C96358;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 5px">👥 Trio — par personne/mois</div>
+    <div class="offres-grid">
+      <button class="offre-btn" onclick="addOffre('Coaching trio 1×/semaine — 1 mois',1,150)"><strong>150€</strong>Trio 1×/sem</button>
+      <button class="offre-btn" onclick="addOffre('Coaching trio 2×/semaine — 1 mois',1,280)"><strong>280€</strong>Trio 2×/sem</button>
+      <button class="offre-btn" onclick="addOffre('Coaching trio 3×/semaine — 1 mois',1,390)"><strong>390€</strong>Trio 3×/sem</button>
+    </div>
+
+    <div style="font-size:10px;font-weight:700;color:#C96358;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 5px">📦 Forfaits séances</div>
+    <div class="offres-grid">
+      <button class="offre-btn" onclick="addOffre('Forfait Découverte — 3 séances',3,70)"><strong>210€</strong>Forfait 3 séances</button>
+      <button class="offre-btn" onclick="addOffre('Forfait Essentiel — 6 séances',6,65)"><strong>390€</strong>Forfait 6 séances</button>
+      <button class="offre-btn" onclick="addOffre('Forfait Performance — 10 séances',10,65)"><strong>650€</strong>Forfait 10 séances</button>
+      <button class="offre-btn" onclick="addOffre('Forfait Intensif — 20 séances',20,55)"><strong>1100€</strong>Forfait 20 séances</button>
+      <button class="offre-btn" onclick="addOffre('Forfait Fidélité — 24 séances',24,50)"><strong>1200€</strong>Forfait 24 séances</button>
+    </div>
+
+    <div style="font-size:10px;font-weight:700;color:#C96358;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 5px">🔀 Hybride</div>
+    <div class="offres-grid">
+      <button class="offre-btn" onclick="addOffre('Coaching Hybride Essentielle — 1 mois',1,99)"><strong>99€</strong>Hybride Essentielle</button>
+      <button class="offre-btn" onclick="addOffre('Coaching Hybride Performance — 1 mois',1,169)"><strong>169€</strong>Hybride Performance</button>
+    </div>
+
+    <div style="font-size:10px;font-weight:700;color:#C96358;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 5px">💻 Distanciel</div>
+    <div class="offres-grid">
       <button class="offre-btn" onclick="addOffre('Programme autonomie 8 semaines',1,79)"><strong>79€</strong>Autonomie 8 sem.</button>
+      <button class="offre-btn" onclick="addOffre('Coaching distanciel avec suivi — 1 mois',1,119)"><strong>119€</strong>Distanciel 1 mois</button>
+      <button class="offre-btn" onclick="addOffre('Coaching distanciel avec suivi — mensuel',3,99)"><strong>99€/mois</strong>Distanciel 3 mois</button>
+      <button class="offre-btn" onclick="addOffre('Coaching distanciel avec suivi — mensuel',6,89)"><strong>89€/mois</strong>Distanciel 6 mois</button>
+    </div>
+
+    <div style="font-size:10px;font-weight:700;color:#C96358;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 5px">🥗 Options</div>
+    <div class="offres-grid">
       <button class="offre-btn" onclick="addOffre('Accompagnement nutrition — 1 mois',1,40)"><strong>+40€</strong>Option nutrition</button>
     </div>
 
@@ -141,6 +174,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="totaux-box">
       <div class="totaux-line"><span>Sous-total</span><span id="subtotal-display">0,00 €</span></div>
       <div class="totaux-line" id="remise-line" style="display:none;color:#3B6D11"><span>Déduction séance d'essai</span><span id="remise-display">−50,00 €</span></div>
+      <div class="totaux-line" style="align-items:center">
+        <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:#7A6E6E">
+          🏷️ Réduction
+          <input type="number" id="remise-pct" min="0" max="100" step="1" placeholder="%" oninput="calcTotal()"
+            style="width:54px;border:1.5px solid #D4C8C0;border-radius:6px;padding:4px 6px;font-size:13px;text-align:center;-webkit-appearance:none;outline:none">
+          %
+        </span>
+        <span id="remise-pct-display" style="color:#3B6D11;font-weight:700"></span>
+      </div>
       <div class="totaux-line total"><span>TOTAL TTC</span><span id="total-display">0,00 €</span></div>
       <div style="font-size:10px;color:#B0A8A8;margin-top:6px">TVA non applicable — Auto-entrepreneur (art. 293 B du CGI)</div>
     </div>
@@ -268,8 +310,17 @@ function calcTotal() {
     if(ttEl)ttEl.textContent=t.toFixed(2);
   });
   document.getElementById('subtotal-display').textContent=subtotal.toFixed(2).replace('.',',')+' €';
-  document.getElementById('total-display').textContent=subtotal.toFixed(2).replace('.',',')+' €';
-  return subtotal;
+  var pct=parseFloat(document.getElementById('remise-pct').value)||0;
+  var remiseMontant=pct>0?Math.round(subtotal*pct/100*100)/100:0;
+  var pctDisplay=document.getElementById('remise-pct-display');
+  if(pct>0&&remiseMontant>0){
+    pctDisplay.textContent='−'+remiseMontant.toFixed(2).replace('.',',')+' €';
+  } else {
+    pctDisplay.textContent='';
+  }
+  var total=subtotal-remiseMontant;
+  document.getElementById('total-display').textContent=total.toFixed(2).replace('.',',')+' €';
+  return total;
 }
 
 function getPrestaLines() {
@@ -412,6 +463,26 @@ function genererPDF() {
     y+=8;
   });
 
+  // REDUCTION %
+  var remisePct=parseFloat(document.getElementById('remise-pct').value)||0;
+  var remiseMontantPDF=remisePct>0?Math.round(total*remisePct/100*100)/100:0;
+  if(remiseMontantPDF>0){
+    doc.setFontSize(8.5);doc.setFont('helvetica','normal');
+    doc.setTextColor(122,110,110);
+    doc.text('Sous-total',margin+5,y+5.5);
+    doc.setFont('helvetica','bold');doc.setTextColor(30,22,22);
+    doc.text(total.toFixed(2).replace('.',',')+' €',W-margin-3,y+5.5,{align:'right'});
+    y+=7;
+    doc.setFillColor(234,243,222);
+    doc.rect(margin,y,W-margin*2,8,'F');
+    doc.setTextColor(59,109,17);
+    doc.setFontSize(8.5);doc.setFont('helvetica','bold');
+    doc.text('Réduction '+remisePct+'%',margin+5,y+5.5);
+    doc.text('−'+remiseMontantPDF.toFixed(2).replace('.',',')+' €',W-margin-3,y+5.5,{align:'right'});
+    y+=9;
+    total=total-remiseMontantPDF;
+  }
+
   // TOTAL
   doc.setFillColor(30,22,22);
   doc.rect(margin,y,W-margin*2,11,'F');
@@ -476,6 +547,8 @@ function genererPDF() {
 function resetForm(){
   ['client-prenom','client-nom','client-email','client-tel','client-adresse','doc-note'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('client-select').value='';
+  document.getElementById('remise-pct').value='';
+  calcTotal();
   document.getElementById('presta-list').innerHTML='';
   prestaCount=0; hasRemiseEssai=false;
   calcTotal(); autoNum();
