@@ -381,26 +381,28 @@ function showDetail(id){
     var first=mesures[0];
     html+='<div style="font-size:11px;color:#7A6E6E;margin-bottom:8px">Dernière mesure : '+last.date+'</div>';
 
-    // Grille valeurs actuelles + diff depuis précédente
+    // Grille valeurs — total depuis début en grand, vs précédente en petit
+    var lossFields=['poids','tourTaille','tourHanches','tourFessiers','tourCuisses','tourPoitrine','tourDos','tourBras'];
     html+='<div class="m-grid">';
     MFIELDS.forEach(function(f){
       if(!last[f.key])return;
-      var diffPrev='',diffTotal='';
-      if(prev&&prev[f.key]){
-        var d=parseFloat((last[f.key]-prev[f.key]).toFixed(1));
-        var sign=d>0?'+':'';
-        var cls=f.key==='poids'||f.key==='tourTaille'||f.key==='tourHanches'||f.key==='tourFessiers'||f.key==='tourCuisses'||f.key==='tourPoitrine'||f.key==='tourBras'
-          ?(d<0?'neg':'pos'):(d>0?'pos':'neg');
-        diffPrev='<div class="m-diff '+cls+'" title="vs mesure précédente">'+sign+d+' '+f.unit+'</div>';
-      }
+      var isLoss=lossFields.indexOf(f.key)>=0;
+      var totalHtml='',prevHtml='';
+      // TOTAL depuis première mesure (affiché en grand, couleur forte)
       if(mesures.length>1&&first[f.key]&&first!==last){
         var dt=parseFloat((last[f.key]-first[f.key]).toFixed(1));
         var signT=dt>0?'+':'';
-        var clsT=f.key==='poids'||f.key==='tourTaille'||f.key==='tourHanches'
-          ?(dt<0?'neg':'pos'):(dt>0?'pos':'neg');
-        diffTotal='<div style="font-size:9px;color:var(--text3);margin-top:1px">Total : <span style="font-weight:700;color:'+(clsT==='neg'?'var(--green)':'#E24B4A')+'">'+signT+dt+' '+f.unit+'</span></div>';
+        var goodT=isLoss?(dt<0):(dt>0);
+        totalHtml='<div class="m-diff '+(goodT?'neg':'pos')+'">'+signT+dt+' '+f.unit+' <span style="font-size:9px;opacity:.65">depuis début</span></div>';
       }
-      html+='<div class="m-item"><div class="m-label">'+f.label+'</div><div class="m-val">'+last[f.key]+' '+f.unit+'</div>'+diffPrev+diffTotal+'</div>';
+      // Vs mesure précédente (petit, secondaire)
+      if(prev&&prev[f.key]){
+        var d=parseFloat((last[f.key]-prev[f.key]).toFixed(1));
+        var signP=d>0?'+':'';
+        var goodP=isLoss?(d<0):(d>0);
+        prevHtml='<div style="font-size:10px;margin-top:2px;color:'+(goodP?'var(--green)':'var(--text3)')+'">vs préc. : '+signP+d+' '+f.unit+'</div>';
+      }
+      html+='<div class="m-item"><div class="m-label">'+f.label+'</div><div class="m-val">'+last[f.key]+' '+f.unit+'</div>'+totalHtml+prevHtml+'</div>';
     });
     html+='</div>';
 
