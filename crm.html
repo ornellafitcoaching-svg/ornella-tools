@@ -197,7 +197,11 @@ var defaultClients = [
   {id:2,nom:"Béatrice Peuvrier",age:56,email:"beatrice.peuvrier@bconcept.ovh",telephone:"661635719",adresse:"",codePostal:"",ville:"",offre:"Pack 10 séances",debut:"03/03/2026",seancesPrevues:10,seancesEffectuees:1,montant:null,paye:null,paiement:"Virement",statut:"Actif",objectif:"Remise en forme",lieu:"Domicile",antecedents:"Pubalgie hanche / contracture psoas",joursPreferes:"Lundi 9H30 ou Mardi 9H30",contratSigne:true,cgvAcceptees:true,notes:"",ci:1,
     mesures:[{date:"01/02/2026",poids:64,taille:168,tourTaille:72,tourHanches:103,tourFessiers:102,tourCuisses:54,tourPoitrine:95,tourDos:84,tourBras:28}]},
   {id:3,nom:"Émeline Cozzi",age:31,email:"emeline.cozzibouygues@gmail.com",telephone:"650357276",adresse:"20 av du Président Salvador Allende",codePostal:"91240",ville:"St-Michel-sur-Orge",offre:"1 séance/sem - 1 mois",debut:"21/04/2026",seancesPrevues:4,seancesEffectuees:3,montant:290,paye:290,paiement:"Virement",statut:"Actif",objectif:"Prise de masse",lieu:"Hybride",antecedents:"RAS - 2 grossesses",joursPreferes:"Lundi 10H45 salle / Jeudi 12H domicile",contratSigne:true,cgvAcceptees:true,notes:"",ci:2,
-    mesures:[{date:"21/04/2026",poids:60,taille:164,tourTaille:71,tourHanches:89,tourFessiers:99,tourCuisses:58,tourPoitrine:89,tourDos:78,tourBras:26}]},
+    mesures:[
+    {date:"14/03/2025",poids:57,taille:172,tourTaille:71,tourHanches:80,tourFessiers:88,tourCuisses:45.5,tourPoitrine:87,tourDos:74.5,tourBras:26.5},
+    {date:"18/04/2026",poids:null,taille:null,tourTaille:68,tourHanches:86,tourFessiers:97,tourCuisses:57,tourPoitrine:85,tourDos:null,tourBras:25},
+    {date:"21/04/2026",poids:60,taille:164,tourTaille:71,tourHanches:89,tourFessiers:99,tourCuisses:58,tourPoitrine:89,tourDos:78,tourBras:26}
+  ]},
   {id:4,nom:"Sandra Daouadi",age:37,email:"sandra_daouadi@yahoo.fr",telephone:"761417648",adresse:"19 rue Elsa Triolet",codePostal:"91160",ville:"Saulx-les-Chartreux",offre:"1 mois PDF Distanciel",debut:"15/04/2026",seancesPrevues:null,seancesEffectuees:null,montant:59,paye:59,paiement:"Virement",statut:"Actif",objectif:"Perte de poids",lieu:"Distanciel",antecedents:"Néant",joursPreferes:"",contratSigne:false,cgvAcceptees:true,notes:"Veut perdre du ventre. PDF envoyé.",ci:3,mesures:[]},
   {id:5,nom:"Laurie Jordan",age:39,email:"jordan_laurie@yahoo.fr",telephone:"664635637",adresse:"5 rue des Vieux Gagnons",codePostal:"91460",ville:"Marcoussis",offre:"1 séance/sem - 1 mois",debut:"09/04/2026",seancesPrevues:4,seancesEffectuees:4,montant:260,paye:260,paiement:"Virement",statut:"Terminé",objectif:"Perte de poids",lieu:"Domicile",antecedents:"1 grossesse / déchirure ligaments genou / fracture pied",joursPreferes:"Jeudi",contratSigne:true,cgvAcceptees:true,notes:"",ci:4,
     mesures:[
@@ -213,10 +217,10 @@ var defaultClients = [
 
 var clients;
 try{
-  var s6=localStorage.getItem('ofc_crm_v6');
+  var s6=localStorage.getItem('ofc_crm_v7');
   if(!s6){
     // Cherche données existantes (v5, v4, v3)
-    var sOld=localStorage.getItem('ofc_crm_v5')||localStorage.getItem('ofc_crm_v4')||localStorage.getItem('ofc_crm_v3');
+    var sOld=localStorage.getItem('ofc_crm_v6')||localStorage.getItem('ofc_crm_v5')||localStorage.getItem('ofc_crm_v4')||localStorage.getItem('ofc_crm_v3');
     var base=sOld?JSON.parse(sOld):JSON.parse(JSON.stringify(defaultClients));
     // Injecte les mesures complètes pour Louise, Laurie, Béatrice
     var patches={
@@ -228,14 +232,19 @@ try{
         {date:"03/04/2026",poids:70,taille:167,tourTaille:82,tourHanches:101,tourFessiers:105,tourCuisses:58,tourPoitrine:92,tourDos:null,tourBras:28}
       ]},
       2:{mesures:[{date:"01/02/2026",poids:64,taille:168,tourTaille:72,tourHanches:103,tourFessiers:102,tourCuisses:54,tourPoitrine:95,tourDos:84,tourBras:28}]},
+      3:{mesures:[
+        {date:"14/03/2025",poids:57,taille:172,tourTaille:71,tourHanches:80,tourFessiers:88,tourCuisses:45.5,tourPoitrine:87,tourDos:74.5,tourBras:26.5},
+        {date:"18/04/2026",poids:null,taille:null,tourTaille:68,tourHanches:86,tourFessiers:97,tourCuisses:57,tourPoitrine:85,tourDos:null,tourBras:25},
+        {date:"21/04/2026",poids:60,taille:164,tourTaille:71,tourHanches:89,tourFessiers:99,tourCuisses:58,tourPoitrine:89,tourDos:78,tourBras:26}
+      ]},
       5:{mesures:[
         {date:"30/03/2026",poids:92,taille:166,tourTaille:88,tourHanches:122,tourFessiers:125,tourCuisses:71,tourPoitrine:108,tourDos:87,tourBras:37},
         {date:"30/04/2026",poids:null,taille:null,tourTaille:89,tourHanches:null,tourFessiers:121,tourCuisses:66,tourPoitrine:103,tourDos:90,tourBras:37}
       ]}
     };
     base.forEach(function(c){if(patches[c.id])c.mesures=patches[c.id].mesures;});
-    localStorage.setItem('ofc_crm_v6',JSON.stringify(base));
-    s6=localStorage.getItem('ofc_crm_v6');
+    localStorage.setItem('ofc_crm_v7',JSON.stringify(base));
+    s6=localStorage.getItem('ofc_crm_v7');
   }
   clients=JSON.parse(s6);
 }
@@ -247,7 +256,7 @@ function sortMesures(arr){arr.sort(function(a,b){return parseDateFR(a.date)-pars
 // Migration : trie les mesures existantes en localStorage au chargement
 clients.forEach(function(c){if(c.mesures&&c.mesures.length>1)sortMesures(c.mesures);});
 
-function save(){try{localStorage.setItem('ofc_crm_v6',JSON.stringify(clients));}catch(e){}}
+function save(){try{localStorage.setItem('ofc_crm_v7',JSON.stringify(clients));}catch(e){}}
 function initials(n){return n.split(' ').slice(0,2).map(function(x){return (x[0]||'').toUpperCase();}).join('');}
 function colFor(c){return COLORS[(c.ci||0)%COLORS.length];}
 function gv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
