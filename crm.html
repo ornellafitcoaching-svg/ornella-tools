@@ -172,6 +172,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
 if(localStorage.getItem('ofc_tools_auth')!=='ok'){window.location.replace('./?r=crm');}
 
 // ── CONFIG ────────────────────────────────────────────────────
+var OFFRES = [
+  {label:'🏠 Séance découverte domicile',val:'Séance découverte coaching domicile',prix:50,seances:1},
+  {label:'🏠 Séance domicile — unité',val:'Séance coaching domicile',prix:70,seances:1},
+  {label:'🏠 Domicile 1×/sem — 1 mois',val:'Coaching domicile 1×/semaine — 1 mois',prix:260,seances:4},
+  {label:'🏠 Domicile 2×/sem — 1 mois',val:'Coaching domicile 2×/semaine — 1 mois',prix:480,seances:8},
+  {label:'🏠 Domicile 3×/sem — 1 mois',val:'Coaching domicile 3×/semaine — 1 mois',prix:660,seances:12},
+  {label:'👥 Duo 1×/sem — 1 mois',val:'Coaching duo 1×/semaine — 1 mois',prix:200,seances:4},
+  {label:'👥 Duo 2×/sem — 1 mois',val:'Coaching duo 2×/semaine — 1 mois',prix:340,seances:8},
+  {label:'👥 Duo 3×/sem — 1 mois',val:'Coaching duo 3×/semaine — 1 mois',prix:480,seances:12},
+  {label:'👥 Trio 1×/sem — 1 mois',val:'Coaching trio 1×/semaine — 1 mois',prix:150,seances:4},
+  {label:'👥 Trio 2×/sem — 1 mois',val:'Coaching trio 2×/semaine — 1 mois',prix:280,seances:8},
+  {label:'👥 Trio 3×/sem — 1 mois',val:'Coaching trio 3×/semaine — 1 mois',prix:390,seances:12},
+  {label:'📦 Forfait 3 séances',val:'Forfait Découverte — 3 séances',prix:210,seances:3},
+  {label:'📦 Forfait 6 séances',val:'Forfait Essentiel — 6 séances',prix:390,seances:6},
+  {label:'📦 Forfait 10 séances',val:'Forfait Performance — 10 séances',prix:650,seances:10},
+  {label:'📦 Forfait 20 séances',val:'Forfait Intensif — 20 séances',prix:1100,seances:20},
+  {label:'📦 Forfait 24 séances',val:'Forfait Fidélité — 24 séances',prix:1200,seances:24},
+  {label:'🔀 Hybride Essentielle — 1 mois',val:'Coaching Hybride Essentielle — 1 mois',prix:99,seances:4},
+  {label:'🔀 Hybride Performance — 1 mois',val:'Coaching Hybride Performance — 1 mois',prix:169,seances:4},
+  {label:'💻 Autonomie 8 semaines',val:'Programme autonomie 8 semaines',prix:79,seances:null},
+  {label:'💻 Distanciel 1 mois',val:'Coaching distanciel avec suivi — 1 mois',prix:119,seances:null},
+  {label:'💻 Distanciel 3 mois',val:'Coaching distanciel avec suivi — 3 mois',prix:297,seances:null},
+  {label:'💻 Distanciel 6 mois',val:'Coaching distanciel avec suivi — 6 mois',prix:534,seances:null},
+  {label:'🥗 Option nutrition — 1 mois',val:'Accompagnement nutrition — 1 mois',prix:40,seances:null}
+];
+
 var COLORS = [
   {bg:'#E6F1FB',tx:'#185FA5'},{bg:'#EAF3DE',tx:'#3B6D11'},
   {bg:'#FAEEDA',tx:'#854F0B'},{bg:'#FBEAF0',tx:'#993556'},
@@ -652,7 +678,18 @@ function showForm(id){
     '</select></div></div>';
 
   html+='<div class="form-section-title">Offre et paiement</div>';
-  html+='<div class="form-group"><label class="form-label">Offre</label><input class="form-input" id="f-offre" value="'+(c?c.offre||'':'')+'"></div>';
+  var currentOffre=c?c.offre||'':'';
+  var offreInList=OFFRES.some(function(o){return o.val===currentOffre;});
+  html+='<div class="form-group"><label class="form-label">Offre</label>'+
+    '<select class="form-input" id="f-offre-sel" onchange="onOffreChange()">'+
+    '<option value="">— Choisir une offre —</option>'+
+    OFFRES.map(function(o){return '<option value="'+o.val+'"'+(currentOffre===o.val?' selected':'')+'>'+o.label+' — '+o.prix+'€</option>';}).join('')+
+    '<option value="__mesure__"'+(!offreInList&&currentOffre?' selected':'')+'>✏️ Offre sur mesure</option>'+
+    '</select></div>'+
+    '<div class="form-group" id="f-offre-mesure-wrap" style="display:'+((!offreInList&&currentOffre)?'block':'none')+'">'+
+    '<label class="form-label">Intitulé offre sur mesure</label>'+
+    '<input class="form-input" id="f-offre-mesure" placeholder="Ex: Pack personnalisé..." value="'+((!offreInList&&currentOffre)?currentOffre:'')+'">'+
+    '</div>';
   html+='<div class="form-row">'+
     '<div class="form-group"><label class="form-label">Date début</label><input class="form-input" id="f-debut" placeholder="JJ/MM/AAAA" value="'+(c?c.debut||'':'')+'"></div>'+
     // FIX : statut sélectionné correctement
@@ -688,6 +725,24 @@ function showForm(id){
   showView('view-form');
 }
 
+function onOffreChange(){
+  var sel=document.getElementById('f-offre-sel');
+  var wrap=document.getElementById('f-offre-mesure-wrap');
+  var val=sel.value;
+  wrap.style.display=val==='__mesure__'?'block':'none';
+  var offre=OFFRES.find(function(o){return o.val===val;});
+  if(offre){
+    if(offre.prix){document.getElementById('f-mont').value=offre.prix;}
+    if(offre.seances){document.getElementById('f-sp').value=offre.seances;}
+  }
+}
+
+function getOffreVal(){
+  var sel=document.getElementById('f-offre-sel');
+  if(!sel)return '';
+  return sel.value==='__mesure__'?gv('f-offre-mesure'):sel.value;
+}
+
 function saveForm(id){
   var nom=gv('f-nom');
   if(!nom){toast('Prénom et nom requis');return;}
@@ -699,7 +754,7 @@ function saveForm(id){
       c.adresse=gv('f-adresse');c.codePostal=gv('f-cp');c.ville=gv('f-ville');
       c.objectif=gv('f-obj');c.lieu=gv('f-lieu');
       c.antecedents=gv('f-ant');c.joursPreferes=gv('f-jours');
-      c.offre=gv('f-offre');c.debut=gv('f-debut');c.statut=gv('f-statut');
+      c.offre=getOffreVal();c.debut=gv('f-debut');c.statut=gv('f-statut');
       c.seancesPrevues=sp;c.seancesEffectuees=se||0;
       c.montant=gn('f-mont');c.paye=gn('f-paye');c.paiement=gv('f-paiem');c.notes=gv('f-notes');
       c.contratSigne=gv('f-contrat')==='oui';c.cgvAcceptees=gv('f-cgv')==='oui';
@@ -711,7 +766,7 @@ function saveForm(id){
       objectif:gv('f-obj'),lieu:gv('f-lieu'),
       antecedents:gv('f-ant'),joursPreferes:gv('f-jours'),
       contratSigne:gv('f-contrat')==='oui',cgvAcceptees:gv('f-cgv')==='oui',
-      offre:gv('f-offre'),debut:gv('f-debut'),statut:gv('f-statut'),
+      offre:getOffreVal(),debut:gv('f-debut'),statut:gv('f-statut'),
       seancesPrevues:sp,seancesEffectuees:se||0,
       montant:gn('f-mont'),paye:gn('f-paye'),paiement:gv('f-paiem'),notes:gv('f-notes'),
       ci:clients.length%COLORS.length,mesures:[]};
