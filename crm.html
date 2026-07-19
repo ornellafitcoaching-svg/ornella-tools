@@ -350,7 +350,7 @@ function showTab(name){
 }
 
 function badge(s){
-  return s==='Actif'?'<span class="badge badge-actif">Actif</span>':'<span class="badge badge-termine">Terminé</span>';
+  return s==='Actif'?'<span class="badge badge-actif">Actif</span>':'<span class="badge badge-termine">'+(s||'Terminé')+'</span>';
 }
 function progBar(c){
   if(!c.seancesPrevues)return '';
@@ -424,7 +424,7 @@ function renderAll(){
     clients.filter(function(c){return c.statut==='Actif';}).map(renderCard).join('')||'<div class="empty">Aucune cliente active</div>';
   document.getElementById('section-toutes').innerHTML=clients.map(renderCard).join('');
   document.getElementById('section-terminees').innerHTML=
-    clients.filter(function(c){return c.statut==='Terminé';}).map(renderCard).join('')||'<div class="empty">Aucune cliente terminée pour l\'instant</div>';
+    clients.filter(function(c){return c.statut==='Terminé'||c.statut==='Perdu';}).map(renderCard).join('')||'<div class="empty">Aucune cliente terminée pour l\'instant</div>';
   renderAlertes();
 }
 
@@ -623,7 +623,10 @@ function sendRelanceWA(id){
 function addSeance(id){
   var c=clients.find(function(x){return x.id===id;});
   if(!c||!c.seancesPrevues||c.seancesEffectuees>=c.seancesPrevues)return;
-  c.seancesEffectuees++;save();
+  c.seancesEffectuees++;
+  if(!c.seancesLog)c.seancesLog=[];
+  c.seancesLog.push({date:today(),note:''});
+  save();
   var reste=c.seancesPrevues-c.seancesEffectuees;
   toast('Séance validée — '+c.seancesEffectuees+'/'+c.seancesPrevues);
   if(reste<=2&&reste>=0) notifAlerte(c.nom, reste);
@@ -633,7 +636,9 @@ function addSeance(id){
 function annulerSeance(id){
   var c=clients.find(function(x){return x.id===id;});
   if(!c||c.seancesEffectuees<=0)return;
-  c.seancesEffectuees--;save();
+  c.seancesEffectuees--;
+  if(c.seancesLog&&c.seancesLog.length&&!c.seancesLog[c.seancesLog.length-1].note)c.seancesLog.pop();
+  save();
   toast('Séance annulée — '+c.seancesEffectuees+'/'+c.seancesPrevues);
   showDetail(id);
 }
