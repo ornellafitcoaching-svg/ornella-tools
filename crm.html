@@ -614,7 +614,6 @@ function sendRelanceWA(id){
 function addSeance(id){
   var c=clients.find(function(x){return x.id===id;});
   if(!c||!c.seancesPrevues||c.seancesEffectuees>=c.seancesPrevues)return;
-  if(!confirm('Valider une séance pour '+c.nom.split(' ')[0]+' ?\n'+c.seancesEffectuees+' → '+(c.seancesEffectuees+1)+' / '+c.seancesPrevues))return;
   c.seancesEffectuees++;save();
   var reste=c.seancesPrevues-c.seancesEffectuees;
   toast('Séance validée — '+c.seancesEffectuees+'/'+c.seancesPrevues);
@@ -625,7 +624,6 @@ function addSeance(id){
 function annulerSeance(id){
   var c=clients.find(function(x){return x.id===id;});
   if(!c||c.seancesEffectuees<=0)return;
-  if(!confirm('Annuler la dernière séance de '+c.nom.split(' ')[0]+' ?\n'+(c.seancesEffectuees)+' → '+(c.seancesEffectuees-1)+' / '+c.seancesPrevues))return;
   c.seancesEffectuees--;save();
   toast('Séance annulée — '+c.seancesEffectuees+'/'+c.seancesPrevues);
   showDetail(id);
