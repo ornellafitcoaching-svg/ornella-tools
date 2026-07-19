@@ -705,7 +705,7 @@ function renderDocuments(c){
   if(docs.length){
     docs.forEach(function(d,idx){
       html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border2)">'+
-        '<a href="'+d.url+'" target="_blank" rel="noopener" style="color:var(--accent);font-size:13px;font-weight:600;text-decoration:none">📄 '+(d.label||d.url)+'</a>'+
+        '<button class="no-print" style="background:none;border:none;color:var(--accent);font-size:13px;font-weight:600;text-align:left;cursor:pointer;padding:0" onclick="openDocument('+c.id+','+idx+')">📄 '+(d.label||'Document')+'</button>'+
         '<button class="no-print" style="background:none;border:none;color:#E24B4A;font-size:12px;cursor:pointer" onclick="deleteDocument('+c.id+','+idx+')">✕</button>'+
         '</div>';
     });
@@ -774,6 +774,32 @@ function deleteDocument(id,idx){
   c.documents.splice(idx,1);
   save();
   showDetail(id);
+}
+
+function openDocument(id,idx){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c||!c.documents||!c.documents[idx])return;
+  var url=c.documents[idx].url;
+  if(url.indexOf('data:')===0){
+    // Safari (surtout en PWA) bloque souvent l'ouverture directe d'un data: URI dans un nouvel onglet.
+    // On convertit en blob URL, bien plus fiable pour l'affichage.
+    try{
+      var parts=url.split(',');
+      var mimeMatch=parts[0].match(/:(.*?);/);
+      var mime=mimeMatch?mimeMatch[1]:'application/pdf';
+      var bstr=atob(parts[1]);
+      var n=bstr.length;
+      var u8arr=new Uint8Array(n);
+      while(n--){u8arr[n]=bstr.charCodeAt(n);}
+      var blob=new Blob([u8arr],{type:mime});
+      var blobUrl=URL.createObjectURL(blob);
+      window.open(blobUrl,'_blank');
+    }catch(e){
+      toast('Impossible d\'ouvrir ce document');
+    }
+  } else {
+    window.open(url,'_blank');
+  }
 }
 
 // ── MENSURATIONS ──────────────────────────────────────────────
