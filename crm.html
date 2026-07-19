@@ -304,7 +304,17 @@ function sortMesures(arr){arr.sort(function(a,b){return parseDateFR(a.date)-pars
 // Migration : trie les mesures existantes en localStorage au chargement
 clients.forEach(function(c){if(c.mesures&&c.mesures.length>1)sortMesures(c.mesures);});
 
-function save(){try{localStorage.setItem('ofc_crm_v7',JSON.stringify(clients));}catch(e){}}
+var _backupDebounceTimer=null;
+function save(){
+  try{localStorage.setItem('ofc_crm_v7',JSON.stringify(clients));}catch(e){}
+  // Sauvegarde automatique à chaque modification (pas juste 1x/jour) — 3s après la dernière modif, pour éviter un fichier par clic tout en gardant un écart minime.
+  if(_backupDebounceTimer)clearTimeout(_backupDebounceTimer);
+  _backupDebounceTimer=setTimeout(function(){
+    try{exportData();}catch(e){}
+    localStorage.setItem('ofc_crm_lastbackup',new Date().toLocaleDateString('fr-FR'));
+    if(typeof afficherDerniereSauvegarde==='function')afficherDerniereSauvegarde();
+  },3000);
+}
 function initials(n){return n.split(' ').slice(0,2).map(function(x){return (x[0]||'').toUpperCase();}).join('');}
 function colFor(c){return COLORS[(c.ci||0)%COLORS.length];}
 function gv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
