@@ -361,8 +361,8 @@ function progBar(c){
 
 function renderCard(c){
   var cl=colFor(c);
-  var seances=c.seancesPrevues?(c.seancesEffectuees+'/'+c.seancesPrevues):'-';
-  var reste=c.seancesPrevues?((c.seancesPrevues-c.seancesEffectuees)+' rest.'):'-';
+  var seances=c.seancesPrevues?((c.seancesEffectuees||0)+'/'+c.seancesPrevues):'-';
+  var reste=c.seancesPrevues?((c.seancesPrevues-(c.seancesEffectuees||0))+' rest.'):'-';
   var payeStr=c.paye?c.paye+'€':'—';
   var payeColor=(c.paye&&c.montant&&c.paye>=c.montant)?'color:#3B6D11':'';
   return '<div class="card" onclick="showDetail('+c.id+')">'+
@@ -447,7 +447,7 @@ function showDetail(id){
   // Séances
   if(c.seancesPrevues){
     html+='<div class="dcard"><div class="dcard-title">Suivi séances</div>'+
-      '<div class="big-num"><span>'+c.seancesEffectuees+'</span><span>/'+c.seancesPrevues+'</span></div>'+
+      '<div class="big-num"><span>'+(c.seancesEffectuees||0)+'</span><span>/'+c.seancesPrevues+'</span></div>'+
       progBar(c)+
       '<div style="display:flex;justify-content:space-between;font-size:10px;color:#B0A8A8;margin-top:3px"><span>0</span><span>'+(pct||0)+'%</span><span>'+c.seancesPrevues+'</span></div>'+
       '<button class="seance-btn no-print" '+btnDis+' onclick="addSeance('+c.id+')">+ Valider une séance</button>'+
