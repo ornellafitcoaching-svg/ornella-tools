@@ -59,6 +59,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
 /* VIEWS */
 .view{display:none}
 .view.active{display:block}
+@media print{
+  body *{visibility:hidden}
+  #detail-content,#detail-content *{visibility:visible}
+  #detail-content{position:absolute;left:0;top:0;width:100%}
+  .no-print{display:none!important}
+}
+.pdf-btn{width:100%;padding:11px;background:var(--surface);color:var(--text);border:1.5px solid var(--accent);border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:6px}
 /* BACK BTN */
 .back-btn{background:none;border:none;color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;padding:16px 20px 10px;display:flex;align-items:center;gap:4px;width:100%}
 /* DETAIL */
@@ -151,7 +158,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
 
 <!-- VIEW: DETAIL -->
 <div id="view-detail" class="view">
-  <button class="back-btn" onclick="showList()">← Retour</button>
+  <button class="back-btn no-print" onclick="showList()">← Retour</button>
   <div class="detail-wrap" id="detail-content"></div>
 </div>
 
@@ -443,9 +450,10 @@ function showDetail(id){
       '<div class="big-num"><span>'+c.seancesEffectuees+'</span><span>/'+c.seancesPrevues+'</span></div>'+
       progBar(c)+
       '<div style="display:flex;justify-content:space-between;font-size:10px;color:#B0A8A8;margin-top:3px"><span>0</span><span>'+(pct||0)+'%</span><span>'+c.seancesPrevues+'</span></div>'+
-      '<button class="seance-btn" '+btnDis+' onclick="addSeance('+c.id+')">+ Valider une séance</button>'+
-      '<button class="undo-btn" '+(c.seancesEffectuees<=0?'disabled':'')+' onclick="annulerSeance('+c.id+')">↩ Annuler la dernière séance</button>'+
-      '<button class="whatsapp-btn" onclick="sendWA('+c.id+')">💬 Envoyer rappel WhatsApp</button>'+
+      '<button class="seance-btn no-print" '+btnDis+' onclick="addSeance('+c.id+')">+ Valider une séance</button>'+
+      '<button class="undo-btn no-print" '+(c.seancesEffectuees<=0?'disabled':'')+' onclick="annulerSeance('+c.id+')">↩ Annuler la dernière séance</button>'+
+      '<button class="whatsapp-btn no-print" onclick="sendWA('+c.id+')">💬 Envoyer rappel WhatsApp</button>'+
+      renderSeancesLog(c)+
       '</div>';
   }
 
@@ -563,10 +571,11 @@ function showDetail(id){
   rows2.forEach(function(r){if(r[1])html+='<div class="info-row"><span class="info-l">'+r[0]+'</span><span class="info-v">'+r[1]+'</span></div>';});
   html+='</div>';
 
-  html+='<button class="action-btn" onclick="showForm('+c.id+')">✏️ Modifier la fiche</button>';
-  html+='<button class="action-btn" onclick="sendAvisWA('+c.id+')">⭐ Demander avis Google à '+c.nom.split(' ')[0]+'</button>';
-  html+='<button class="action-btn" onclick="sendRelanceWA('+c.id+')">🔄 Relancer pour renouvellement</button>';
-  html+='<button class="danger-btn" onclick="deleteClient('+c.id+')">Supprimer cette cliente</button>';
+  html+='<button class="pdf-btn no-print" onclick="window.print()">📄 Exporter en PDF</button>';
+  html+='<button class="action-btn no-print" onclick="showForm('+c.id+')">✏️ Modifier la fiche</button>';
+  html+='<button class="action-btn no-print" onclick="sendAvisWA('+c.id+')">⭐ Demander avis Google à '+c.nom.split(' ')[0]+'</button>';
+  html+='<button class="action-btn no-print" onclick="sendRelanceWA('+c.id+')">🔄 Relancer pour renouvellement</button>';
+  html+='<button class="danger-btn no-print" onclick="deleteClient('+c.id+')">Supprimer cette cliente</button>';
 
   document.getElementById('detail-content').innerHTML=html;
   showView('view-detail');
@@ -626,6 +635,52 @@ function annulerSeance(id){
   if(!c||c.seancesEffectuees<=0)return;
   c.seancesEffectuees--;save();
   toast('Séance annulée — '+c.seancesEffectuees+'/'+c.seancesPrevues);
+  showDetail(id);
+}
+
+function renderSeancesLog(c){
+  var log=(c.seancesLog||[]).slice().reverse();
+  var html='<div style="margin-top:14px;border-top:1px solid var(--border2);padding-top:10px">'+
+    '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">📝 Journal des séances</div>';
+  if(log.length){
+    log.forEach(function(entry){
+      var realIdx=(c.seancesLog||[]).indexOf(entry);
+      html+='<div style="font-size:12px;color:var(--text);background:var(--surface2);border-radius:8px;padding:8px 10px;margin-bottom:6px">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center">'+
+        '<strong>'+entry.date+'</strong>'+
+        '<button class="no-print" style="background:none;border:none;color:#E24B4A;font-size:11px;cursor:pointer" onclick="deleteSeanceNote('+c.id+','+realIdx+')">✕</button>'+
+        '</div>'+
+        (entry.note?'<div style="margin-top:2px">'+entry.note+'</div>':'')+
+        '</div>';
+    });
+  } else {
+    html+='<div class="empty" style="padding:8px 0">Aucune note pour l\'instant</div>';
+  }
+  html+='<div class="no-print" style="display:flex;gap:6px;margin-top:6px">'+
+    '<input class="form-input" id="seance-note-'+c.id+'" type="text" placeholder="Note pour la prochaine séance..." style="flex:1">'+
+    '<button class="action-btn" style="width:auto;white-space:nowrap;margin-bottom:0" onclick="addSeanceNote('+c.id+')">Ajouter</button>'+
+    '</div></div>';
+  return html;
+}
+
+function addSeanceNote(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  var input=document.getElementById('seance-note-'+id);
+  var note=input?input.value.trim():'';
+  if(!note)return;
+  if(!c.seancesLog)c.seancesLog=[];
+  c.seancesLog.push({date:today(),note:note});
+  save();
+  showDetail(id);
+  toast('Note ajoutée');
+}
+
+function deleteSeanceNote(id,idx){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c||!c.seancesLog)return;
+  c.seancesLog.splice(idx,1);
+  save();
   showDetail(id);
 }
 
