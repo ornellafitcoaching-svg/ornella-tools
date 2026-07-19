@@ -586,6 +586,7 @@ function showDetail(id){
   html+='<button class="action-btn no-print" onclick="sendAvisWA('+c.id+')">⭐ Demander avis Google à '+c.nom.split(' ')[0]+'</button>';
   html+='<button class="action-btn no-print" onclick="sendRelanceWA('+c.id+')">🔄 Relancer pour renouvellement</button>';
   html+='<button class="action-btn no-print" onclick="sendFideliteWA('+c.id+')">🎁 Annoncer le programme fidélité</button>';
+  html+='<button class="action-btn no-print" onclick="sendParrainageWA('+c.id+')">💌 Annoncer le parrainage</button>';
   html+='<button class="danger-btn no-print" onclick="deleteClient('+c.id+')">Supprimer cette cliente</button>';
 
   document.getElementById('detail-content').innerHTML=html;
@@ -634,6 +635,13 @@ function sendFideliteWA(id){
   var c=clients.find(function(x){return x.id===id;});
   if(!c)return;
   var msg='Bonjour '+c.nom.split(' ')[0]+' 😊\n\nJ\'ai le plaisir de te présenter mon nouveau programme fidélité — pour te remercier de ta confiance ! Séances offertes, cadeaux de renouvellement, tarifs avantageux...\n\nDécouvre tes avantages ici : https://www.ornellafitcoaching.com/programme-fidelite.html 🎁';
+  openWA(c.telephone, msg);
+}
+
+function sendParrainageWA(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  var msg='Bonjour '+c.nom.split(' ')[0]+' 😊\n\nOffre une séance, gagne une séance 💌 J\'ai lancé un programme de parrainage : si tu recommandes une copine, elle profite d\'avantages sur sa première séance, et toi tu reçois 1 séance offerte dès qu\'elle prend un forfait !\n\nTous les détails ici : https://www.ornellafitcoaching.com/carte-marraine.html';
   openWA(c.telephone, msg);
 }
 
