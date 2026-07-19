@@ -128,7 +128,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
 <!-- VIEW: LIST -->
 <div id="view-list" class="view active">
   <div class="app-header">
-    <div><div class="app-title">Ornella Fit Coaching</div><div class="app-date" id="today-date"></div></div>
+    <div><div class="app-title">Ornella Fit Coaching</div><div class="app-date" id="today-date"></div><div class="app-date" id="last-backup-date" style="font-size:10px;opacity:.7"></div></div>
     <div style="display:flex;align-items:center;gap:6px">
       <button class="notif-btn" id="notif-btn" onclick="toggleNotif()" title="Alertes iPhone">🔔</button>
       <button class="notif-btn" onclick="showBackup()" title="Sauvegarde">💾</button>
@@ -947,6 +947,26 @@ updateNotifBtn();
 renderAll();
 checkAlertesNotif();
 checkMensurationReminder();
+
+// ── SAUVEGARDE AUTOMATIQUE ───────────────────────────────────
+// Télécharge un fichier de sauvegarde JSON une fois par jour à l'ouverture,
+// pour ne plus jamais dépendre uniquement du stockage local du navigateur.
+function afficherDerniereSauvegarde(){
+  var last=localStorage.getItem('ofc_crm_lastbackup');
+  var el=document.getElementById('last-backup-date');
+  if(!el)return;
+  el.textContent=last?('💾 Dernière sauvegarde : '+last):'⚠️ Aucune sauvegarde pour l\'instant';
+}
+function autoBackupSiNecessaire(){
+  var today=new Date().toLocaleDateString('fr-FR');
+  var last=localStorage.getItem('ofc_crm_lastbackup');
+  if(last!==today && clients && clients.length){
+    try{exportData();}catch(e){}
+    localStorage.setItem('ofc_crm_lastbackup',today);
+  }
+  afficherDerniereSauvegarde();
+}
+autoBackupSiNecessaire();
 </script>
 </body>
 </html>
