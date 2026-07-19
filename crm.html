@@ -720,7 +720,7 @@ function addDocument(id){
   var labelInput=document.getElementById('doc-label-'+id);
   var urlInput=document.getElementById('doc-url-'+id);
   var url=urlInput?urlInput.value.trim():'';
-  if(!url)return;
+  if(!url){toast('Colle un lien dans le champ "Lien du PDF" avant d\'ajouter');return;}
   if(!c.documents)c.documents=[];
   c.documents.push({label:labelInput?labelInput.value.trim():'',url:url});
   save();
