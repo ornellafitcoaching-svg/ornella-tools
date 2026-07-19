@@ -562,14 +562,14 @@ function showDetail(id){
   html+='<div class="dcard"><div class="dcard-title">Contact & Admin</div>';
   var adresseStr=(c.adresse?c.adresse+' ':'')+((c.codePostal||c.ville)?(c.codePostal?c.codePostal+' ':'')+c.ville:'');
   var rows2=[
-    ['Âge',c.age?c.age+' ans':''],
-    ['Email',c.email],
-    ['Téléphone',c.telephone],
-    ['Adresse',adresseStr],
-    ['Contrat',c.contratSigne?'✅ Signé':'❌ Non signé'],
-    ['CGV',c.cgvAcceptees?'✅ Acceptées':'❌ Non acceptées']
+    ['Âge',c.age?c.age+' ans':'',false],
+    ['Email',c.email,false],
+    ['Téléphone',c.telephone,false],
+    ['Adresse',adresseStr,true],
+    ['Contrat',c.contratSigne?'✅ Signé':'❌ Non signé',false],
+    ['CGV',c.cgvAcceptees?'✅ Acceptées':'❌ Non acceptées',false]
   ];
-  rows2.forEach(function(r){if(r[1])html+='<div class="info-row"><span class="info-l">'+r[0]+'</span><span class="info-v">'+r[1]+'</span></div>';});
+  rows2.forEach(function(r){if(r[1]||r[2])html+='<div class="info-row"><span class="info-l">'+r[0]+'</span><span class="info-v">'+(r[1]||'—')+'</span></div>';});
   html+='</div>';
 
   html+=renderDocuments(c);
