@@ -138,7 +138,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
     <div><div class="app-title">Ornella Fit Coaching</div><div class="app-date" id="today-date"></div><div class="app-date" id="last-backup-date" style="font-size:10px;opacity:.7"></div></div>
     <div style="display:flex;align-items:center;gap:6px">
       <button class="notif-btn" id="notif-btn" onclick="toggleNotif()" title="Alertes iPhone">🔔</button>
-      <button class="notif-btn" onclick="showBackup()" title="Sauvegarde">💾</button>
+      <button class="notif-btn" onclick="exportData()" title="Sauvegarder (télécharger un fichier)">💾</button>
+      <button class="notif-btn" onclick="document.getElementById('import-file').click()" title="Restaurer (depuis un fichier)">📂</button>
       <a href="facturation.html" style="background:none;border:1.5px solid var(--accent);color:var(--accent);border-radius:20px;padding:6px 13px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap">🧾 Factures</a>
       <button class="btn-add" onclick="showForm(null)">+ Ajouter</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
@@ -821,6 +822,7 @@ function showForm(id){
     '<div class="form-group"><label class="form-label">Statut</label><select class="form-input" id="f-statut">'+
     '<option'+((!c||c.statut==='Actif')?' selected':'')+'>Actif</option>'+
     '<option'+(c&&c.statut==='Terminé'?' selected':'')+'>Terminé</option>'+
+    '<option'+(c&&c.statut==='Perdu'?' selected':'')+'>Perdu</option>'+
     '</select></div></div>';
   html+='<div class="form-row">'+
     '<div class="form-group"><label class="form-label">Séances prévues</label><input class="form-input" id="f-sp" type="number" min="0" value="'+(c&&c.seancesPrevues?c.seancesPrevues:'')+'"></div>'+
@@ -959,14 +961,6 @@ function checkAlertesNotif(){
       });
     });
   }).catch(function(){});
-}
-
-function showBackup(){
-  if(confirm('Exporter les données ?\n\nChoisir "Annuler" pour importer à la place.')){
-    exportData();
-  } else {
-    document.getElementById('import-file').click();
-  }
 }
 
 function exportData(){
