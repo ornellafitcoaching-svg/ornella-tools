@@ -316,7 +316,12 @@ clients.forEach(function(c){if(c.mesures&&c.mesures.length>1)sortMesures(c.mesur
 
 var _backupDebounceTimer=null;
 function save(){
-  try{localStorage.setItem('ofc_crm_v7',JSON.stringify(clients));}catch(e){}
+  try{
+    localStorage.setItem('ofc_crm_v7',JSON.stringify(clients));
+  }catch(e){
+    alert('⚠️ Sauvegarde impossible (stockage plein). Ta dernière action n\'a PAS été enregistrée. Supprime un document PDF existant pour libérer de la place, ou utilise un lien Drive/iCloud au lieu d\'un fichier.');
+    return false;
+  }
   // Sauvegarde automatique à chaque modification (pas juste 1x/jour) — 3s après la dernière modif, pour éviter un fichier par clic tout en gardant un écart minime.
   if(_backupDebounceTimer)clearTimeout(_backupDebounceTimer);
   _backupDebounceTimer=setTimeout(function(){
@@ -324,6 +329,7 @@ function save(){
     localStorage.setItem('ofc_crm_lastbackup',new Date().toLocaleDateString('fr-FR'));
     if(typeof afficherDerniereSauvegarde==='function')afficherDerniereSauvegarde();
   },3000);
+  return true;
 }
 function initials(n){return n.split(' ').slice(0,2).map(function(x){return (x[0]||'').toUpperCase();}).join('');}
 function colFor(c){return COLORS[(c.ci||0)%COLORS.length];}
@@ -709,9 +715,43 @@ function renderDocuments(c){
   html+='<div class="no-print" style="margin-top:10px">'+
     '<input class="form-input" id="doc-label-'+c.id+'" type="text" placeholder="Nom (ex: Séance du 15/07)" style="margin-bottom:6px">'+
     '<input class="form-input" id="doc-url-'+c.id+'" type="url" placeholder="Lien du PDF (Drive, iCloud...)" style="margin-bottom:6px">'+
-    '<button class="action-btn" style="margin-bottom:0" onclick="addDocument('+c.id+')">+ Ajouter le document</button>'+
+    '<button class="action-btn" style="margin-bottom:6px" onclick="addDocument('+c.id+')">+ Ajouter via un lien</button>'+
+    '<input type="file" accept="application/pdf" id="doc-file-'+c.id+'" style="display:none" onchange="handleDocumentFile('+c.id+',this)">'+
+    '<button class="action-btn" style="margin-bottom:0;border-color:var(--accent);color:var(--accent)" onclick="document.getElementById(\'doc-file-'+c.id+'\').click()">📎 Choisir un PDF depuis Fichiers (petit fichier, &lt;400 Ko)</button>'+
     '</div></div>';
   return html;
+}
+
+function handleDocumentFile(id,input){
+  var file=input.files&&input.files[0];
+  if(!file)return;
+  if(file.type!=='application/pdf'){toast('Seuls les fichiers PDF sont acceptés');input.value='';return;}
+  var maxSize=400*1024;
+  if(file.size>maxSize){
+    alert('Ce PDF fait '+Math.round(file.size/1024)+' Ko — trop volumineux pour être stocké directement dans l\'app (limite ~400 Ko, pour éviter de saturer le stockage du téléphone).\n\nUtilise plutôt : Partager le PDF → Enregistrer dans Drive/iCloud → Copier le lien → colle-le dans "Lien du PDF" ci-dessus.');
+    input.value='';
+    return;
+  }
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    if(!c.documents)c.documents=[];
+    var labelInput=document.getElementById('doc-label-'+id);
+    var label=(labelInput&&labelInput.value.trim())||file.name;
+    c.documents.push({label:label,url:e.target.result,isLocal:true});
+    var ok=save();
+    if(ok){
+      showDetail(id);
+      toast('PDF ajouté ✓');
+    } else {
+      c.documents.pop();
+      showDetail(id);
+    }
+  };
+  reader.onerror=function(){toast('Erreur de lecture du fichier');};
+  reader.readAsDataURL(file);
+  input.value='';
 }
 
 function addDocument(id){
@@ -723,7 +763,7 @@ function addDocument(id){
   if(!url){toast('Colle un lien dans le champ "Lien du PDF" avant d\'ajouter');return;}
   if(!c.documents)c.documents=[];
   c.documents.push({label:labelInput?labelInput.value.trim():'',url:url});
-  save();
+  if(!save()){c.documents.pop();showDetail(id);return;}
   showDetail(id);
   toast('Document ajouté');
 }
