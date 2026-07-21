@@ -652,7 +652,7 @@ function addSeance(id){
   c.seancesEffectuees++;
   if(!c.seancesLog)c.seancesLog=[];
   c.seancesLog.push({date:today(),note:''});
-  save();
+  if(!save()){c.seancesEffectuees--;c.seancesLog.pop();return;}
   var reste=c.seancesPrevues-c.seancesEffectuees;
   toast('Séance validée — '+c.seancesEffectuees+'/'+c.seancesPrevues);
   if(reste<=2&&reste>=0) notifAlerte(c.nom, reste);
@@ -663,8 +663,9 @@ function annulerSeance(id){
   var c=clients.find(function(x){return x.id===id;});
   if(!c||c.seancesEffectuees<=0)return;
   c.seancesEffectuees--;
-  if(c.seancesLog&&c.seancesLog.length&&!c.seancesLog[c.seancesLog.length-1].note)c.seancesLog.pop();
-  save();
+  var popped=null;
+  if(c.seancesLog&&c.seancesLog.length&&!c.seancesLog[c.seancesLog.length-1].note)popped=c.seancesLog.pop();
+  if(!save()){c.seancesEffectuees++;if(popped)c.seancesLog.push(popped);return;}
   toast('Séance annulée — '+c.seancesEffectuees+'/'+c.seancesPrevues);
   showDetail(id);
 }
@@ -701,8 +702,14 @@ function addSeanceNote(id){
   var note=input?input.value.trim():'';
   if(!note)return;
   if(!c.seancesLog)c.seancesLog=[];
-  c.seancesLog.push({date:today(),note:note});
-  save();
+  var last=c.seancesLog[c.seancesLog.length-1];
+  var merged=false,prevNote='';
+  if(last&&last.date===today()&&!last.note){
+    prevNote=last.note;last.note=note;merged=true;
+  } else {
+    c.seancesLog.push({date:today(),note:note});
+  }
+  if(!save()){if(merged){last.note=prevNote;}else{c.seancesLog.pop();}return;}
   showDetail(id);
   toast('Note ajoutée');
 }
@@ -710,8 +717,9 @@ function addSeanceNote(id){
 function deleteSeanceNote(id,idx){
   var c=clients.find(function(x){return x.id===id;});
   if(!c||!c.seancesLog)return;
-  c.seancesLog.splice(idx,1);
-  save();
+  if(!confirm('Supprimer cette note ?'))return;
+  var removed=c.seancesLog.splice(idx,1);
+  if(!save()){c.seancesLog.splice(idx,0,removed[0]);return;}
   showDetail(id);
 }
 
@@ -788,8 +796,9 @@ function addDocument(id){
 function deleteDocument(id,idx){
   var c=clients.find(function(x){return x.id===id;});
   if(!c||!c.documents)return;
-  c.documents.splice(idx,1);
-  save();
+  if(!confirm('Supprimer ce document ?'))return;
+  var removed=c.documents.splice(idx,1);
+  if(!save()){c.documents.splice(idx,0,removed[0]);return;}
   showDetail(id);
 }
 
@@ -853,7 +862,8 @@ function saveMension(id){
   MFIELDS.forEach(function(f){var v=gn('mn-'+f.key);m[f.key]=v;if(v)hasVal=true;});
   if(!hasVal){toast('Saisis au moins une valeur');return;}
   if(!c.mesures)c.mesures=[];
-  c.mesures.push(m);sortMesures(c.mesures);save();
+  c.mesures.push(m);sortMesures(c.mesures);
+  if(!save()){c.mesures.splice(c.mesures.indexOf(m),1);return;}
   toast('Mesures enregistrées !');
   showDetail(id);
 }
@@ -889,7 +899,9 @@ function saveMensionEdit(id,idx){
   var m={date:dateVal};var hasVal=false;
   MFIELDS.forEach(function(f){var v=gn('mn-'+f.key);m[f.key]=v;if(v)hasVal=true;});
   if(!hasVal){toast('Saisis au moins une valeur');return;}
-  c.mesures[idx]=m;sortMesures(c.mesures);save();
+  var previous=c.mesures[idx];
+  c.mesures[idx]=m;sortMesures(c.mesures);
+  if(!save()){var pos=c.mesures.indexOf(m);if(pos>-1)c.mesures[pos]=previous;return;}
   toast('Mesure mise à jour !');showDetail(id);
 }
 
@@ -897,7 +909,8 @@ function deleteMension(id,idx){
   if(!confirm('Supprimer cette mesure ?'))return;
   var c=clients.find(function(x){return x.id===id;});
   if(!c||!c.mesures)return;
-  c.mesures.splice(idx,1);save();
+  var removed=c.mesures.splice(idx,1);
+  if(!save()){c.mesures.splice(idx,0,removed[0]);return;}
   toast('Mesure supprimée');showDetail(id);
 }
 
