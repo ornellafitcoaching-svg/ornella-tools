@@ -572,17 +572,7 @@ function populateClientSelect(){
   while(sel.options.length>1)sel.remove(1);
   var raw=localStorage.getItem('ofc_crm_v7')||localStorage.getItem('ofc_crm_v5');
   var crmClients=raw?JSON.parse(raw):[];
-  var fallback=[
-    {nom:'Louise Gabillaud',email:'contact@ornellafitcoaching.com',telephone:'07 56 83 46 26',adresse:''},
-    {nom:'Béatrice Peuvrier',email:'',telephone:'',adresse:''},
-    {nom:'Émeline Cozzi',email:'',telephone:'',adresse:''},
-    {nom:'Sandra Daouadi',email:'',telephone:'',adresse:''},
-    {nom:'Laurie Jordan',email:'',telephone:'',adresse:''},
-    {nom:'Samantha Abgrall',email:'',telephone:'',adresse:''},
-    {nom:'Anne-Christina Maillet',email:'',telephone:'',adresse:''},
-    {nom:'Anne-Fleur Tricaud',email:'',telephone:'',adresse:''},
-    {nom:'Maela Leguillou',email:'',telephone:'',adresse:''}
-  ];
+  var fallback=[];
   if(!crmClients.length)crmClients=fallback;
   crmClients.forEach(function(c){
     var opt=document.createElement('option');
