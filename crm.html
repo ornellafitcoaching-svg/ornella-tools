@@ -151,11 +151,13 @@ select.form-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
     <button class="tab" onclick="showTab('toutes')">Toutes</button>
     <button class="tab" onclick="showTab('terminees')">Terminées</button>
     <button class="tab" onclick="showTab('alertes')">Alertes</button>
+    <button class="tab" onclick="showTab('revenus')">💰 Revenus</button>
   </div>
   <div id="section-actives" class="section active"></div>
   <div id="section-toutes" class="section"></div>
   <div id="section-terminees" class="section"></div>
   <div id="section-alertes" class="section"></div>
+  <div id="section-revenus" class="section"></div>
 </div>
 
 <!-- VIEW: DETAIL -->
@@ -308,7 +310,7 @@ function showView(id){
 }
 function showList(){renderAll();showView('view-list');}
 function showTab(name){
-  var tabs=['actives','toutes','terminees','alertes'];
+  var tabs=['actives','toutes','terminees','alertes','revenus'];
   document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',tabs[i]===name);});
   document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
   document.getElementById('section-'+name).classList.add('active');
@@ -384,6 +386,35 @@ function renderAlertes(){
   document.getElementById('section-alertes').innerHTML=html;
 }
 
+function renderRevenus(){
+  var el=document.getElementById('section-revenus');
+  if(!el)return;
+  var totalEncaisse=0,resteAEncaisser=0,nbPacks=0;
+  var parCliente=clients.map(function(c){
+    var hist=c.historique||[];
+    var payeHist=hist.reduce(function(s,h){return s+(h.paye||0);},0);
+    var payeActuel=c.paye||0;
+    var total=payeHist+payeActuel;
+    totalEncaisse+=total;
+    nbPacks+=hist.length+(c.montant?1:0);
+    if(c.statut==='Actif'&&c.montant)resteAEncaisser+=Math.max(0,c.montant-payeActuel);
+    return {nom:c.nom,total:total};
+  }).filter(function(x){return x.total>0;}).sort(function(a,b){return b.total-a.total;});
+
+  var html='<div class="dcard"><div class="dcard-title">Vue d\'ensemble</div>'+
+    '<div class="info-row"><span class="info-l">💰 Total encaissé (toutes clientes)</span><span class="info-v" style="font-weight:700">'+totalEncaisse+'€</span></div>'+
+    '<div class="info-row"><span class="info-l">📤 Reste à encaisser (clientes actives)</span><span class="info-v" style="color:#C96358;font-weight:700">'+resteAEncaisser+'€</span></div>'+
+    '<div class="info-row"><span class="info-l">📦 Packs vendus (total)</span><span class="info-v">'+nbPacks+'</span></div>'+
+    '</div>';
+  html+='<div class="dcard"><div class="dcard-title">Par cliente (encaissé toutes périodes)</div>';
+  html+=parCliente.length?parCliente.map(function(x){
+    return '<div class="info-row"><span class="info-l">'+x.nom+'</span><span class="info-v">'+x.total+'€</span></div>';
+  }).join(''):'<p style="font-size:12px;color:#B0A8A8">Aucun paiement enregistré pour l\'instant.</p>';
+  html+='</div>';
+  html+='<p style="font-size:11px;color:#B0A8A8;padding:0 4px">ℹ️ Basé sur le champ "Payé" de chaque fiche + l\'historique des packs renouvelés. Pas de répartition par mois car les paiements ne sont pas datés individuellement.</p>';
+  el.innerHTML=html;
+}
+
 function renderAll(){
   document.getElementById('section-actives').innerHTML=
     clients.filter(function(c){return c.statut==='Actif';}).map(renderCard).join('')||'<div class="empty">Aucune cliente active</div>';
@@ -391,6 +422,7 @@ function renderAll(){
   document.getElementById('section-terminees').innerHTML=
     clients.filter(function(c){return c.statut==='Terminé'||c.statut==='Perdu';}).map(renderCard).join('')||'<div class="empty">Aucune cliente terminée pour l\'instant</div>';
   renderAlertes();
+  renderRevenus();
 }
 
 function showDetail(id){
@@ -515,6 +547,16 @@ function showDetail(id){
     html+='</tbody></table></div>';
   }
   html+='</div>';
+
+  // ── HISTORIQUE DES PACKS ──────────────────────────────────────
+  if(c.historique&&c.historique.length){
+    html+='<div class="dcard"><div class="dcard-title">Historique des packs précédents</div>';
+    c.historique.slice().reverse().forEach(function(h){
+      html+='<div class="info-row"><span class="info-l">'+h.offre+'</span>'+
+        '<span class="info-v">'+(h.paye||0)+'€ / '+(h.montant||0)+'€ · terminé le '+h.finLe+'</span></div>';
+    });
+    html+='</div>';
+  }
 
   // ── INFOS COACHING ───────────────────────────────────────────
   html+='<div class="dcard"><div class="dcard-title">Coaching</div>';
@@ -983,11 +1025,19 @@ function saveForm(id){
   if(id){
     var c=clients.find(function(x){return x.id===id;});
     if(c){
+      var newOffre=getOffreVal();
+      // Renouvellement (changement d'offre) : on archive l'ancien pack avant de l'écraser, rien n'est perdu pour le suivi des revenus
+      if(c.offre&&newOffre&&newOffre!==c.offre&&(c.montant||c.paye)){
+        c.historique=c.historique||[];
+        c.historique.push({offre:c.offre,montant:c.montant||0,paye:c.paye||0,
+          seancesPrevues:c.seancesPrevues,seancesEffectuees:c.seancesEffectuees,
+          debut:c.debut,finLe:today()});
+      }
       c.nom=nom;c.age=gn('f-age');c.email=gv('f-email');c.telephone=gv('f-tel');
       c.adresse=gv('f-adresse');c.codePostal=gv('f-cp');c.ville=gv('f-ville');
       c.objectif=gv('f-obj');c.lieu=gv('f-lieu');
       c.antecedents=gv('f-ant');c.joursPreferes=gv('f-jours');
-      c.offre=getOffreVal();c.debut=gv('f-debut');c.statut=gv('f-statut');
+      c.offre=newOffre;c.debut=gv('f-debut');c.statut=gv('f-statut');
       c.seancesPrevues=sp;c.seancesEffectuees=se||0;
       c.montant=gn('f-mont');c.paye=gn('f-paye');c.paiement=gv('f-paiem');c.notes=gv('f-notes');
       c.contratSigne=gv('f-contrat')==='oui';c.cgvAcceptees=gv('f-cgv')==='oui';
