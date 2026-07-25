@@ -401,17 +401,36 @@ function renderRevenus(){
     return {nom:c.nom,total:total};
   }).filter(function(x){return x.total>0;}).sort(function(a,b){return b.total-a.total;});
 
+  // Totaux mensuel/annuel : uniquement à partir des paiements datés (bouton "Enregistrer un paiement")
+  var now=new Date(),moisTotal=0,anneeTotal=0,nbPaiementsDates=0;
+  clients.forEach(function(c){
+    (c.paiements||[]).forEach(function(p){
+      var d=parseDateFR(p.date);
+      if(isNaN(d.getTime()))return;
+      nbPaiementsDates++;
+      if(d.getFullYear()===now.getFullYear()){
+        anneeTotal+=p.montant||0;
+        if(d.getMonth()===now.getMonth())moisTotal+=p.montant||0;
+      }
+    });
+  });
+
   var html='<div class="dcard"><div class="dcard-title">Vue d\'ensemble</div>'+
     '<div class="info-row"><span class="info-l">💰 Total encaissé (toutes clientes)</span><span class="info-v" style="font-weight:700">'+totalEncaisse+'€</span></div>'+
     '<div class="info-row"><span class="info-l">📤 Reste à encaisser (clientes actives)</span><span class="info-v" style="color:#C96358;font-weight:700">'+resteAEncaisser+'€</span></div>'+
     '<div class="info-row"><span class="info-l">📦 Packs vendus (total)</span><span class="info-v">'+nbPacks+'</span></div>'+
+    '</div>';
+  html+='<div class="dcard"><div class="dcard-title">Ce mois-ci / cette année</div>'+
+    '<div class="info-row"><span class="info-l">📅 Encaissé ce mois-ci</span><span class="info-v" style="font-weight:700">'+moisTotal+'€</span></div>'+
+    '<div class="info-row"><span class="info-l">📆 Encaissé cette année</span><span class="info-v" style="font-weight:700">'+anneeTotal+'€</span></div>'+
+    (nbPaiementsDates?'':'<p style="font-size:12px;color:#B0A8A8;margin-top:8px">Aucun paiement daté pour l\'instant — utilise le bouton "Ajouter" dans le bloc Paiement d\'une fiche cliente pour commencer à suivre ça mois par mois.</p>')+
     '</div>';
   html+='<div class="dcard"><div class="dcard-title">Par cliente (encaissé toutes périodes)</div>';
   html+=parCliente.length?parCliente.map(function(x){
     return '<div class="info-row"><span class="info-l">'+x.nom+'</span><span class="info-v">'+x.total+'€</span></div>';
   }).join(''):'<p style="font-size:12px;color:#B0A8A8">Aucun paiement enregistré pour l\'instant.</p>';
   html+='</div>';
-  html+='<p style="font-size:11px;color:#B0A8A8;padding:0 4px">ℹ️ Basé sur le champ "Payé" de chaque fiche + l\'historique des packs renouvelés. Pas de répartition par mois car les paiements ne sont pas datés individuellement.</p>';
+  html+='<p style="font-size:11px;color:#B0A8A8;padding:0 4px">ℹ️ "Total encaissé" = champ "Payé" de chaque fiche + historique des packs renouvelés (précis, mais pas daté). "Ce mois-ci / cette année" = uniquement les paiements ajoutés via le bouton daté — les anciens montants entrés à la main dans "Payé" n\'y apparaissent pas tant qu\'ils ne sont pas ressaisis comme paiement daté.</p>';
   el.innerHTML=html;
 }
 
@@ -468,6 +487,7 @@ function showDetail(id){
       (solde>0?'<div style="font-size:12px;color:#C96358;font-weight:600">Reste à encaisser : '+solde+'€</div>':
                '<div style="font-size:12px;color:var(--green);font-weight:600">✓ Payé en totalité</div>')+
       (c.paiement?'<div style="font-size:11px;color:var(--text2);margin-top:6px">Mode : '+c.paiement+'</div>':'')+
+      renderPaiementsLog(c)+
       '</div>';
   }
 
@@ -692,6 +712,53 @@ function renderSeancesLog(c){
     '<button class="action-btn" style="width:auto;white-space:nowrap;margin-bottom:0" onclick="addSeanceNote('+c.id+')">Ajouter</button>'+
     '</div></div>';
   return html;
+}
+
+function renderPaiementsLog(c){
+  var log=(c.paiements||[]).slice().reverse();
+  var html='<div class="no-print" style="margin-top:14px;border-top:1px solid var(--border2);padding-top:10px">'+
+    '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">💶 Paiements reçus (datés)</div>';
+  if(log.length){
+    log.forEach(function(entry){
+      var realIdx=(c.paiements||[]).indexOf(entry);
+      html+='<div style="font-size:12px;color:var(--text);background:var(--surface2);border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">'+
+        '<span><strong>'+entry.montant+'€</strong> — '+entry.date+'</span>'+
+        '<button style="background:none;border:none;color:#E24B4A;font-size:11px;cursor:pointer" onclick="deletePaiement('+c.id+','+realIdx+')">✕</button>'+
+        '</div>';
+    });
+  } else {
+    html+='<div class="empty" style="padding:8px 0">Aucun paiement daté pour l\'instant</div>';
+  }
+  html+='<div style="display:flex;gap:6px;margin-top:6px">'+
+    '<input class="form-input" id="paiement-mont-'+c.id+'" type="number" placeholder="Montant €" style="flex:1">'+
+    '<input class="form-input" id="paiement-date-'+c.id+'" type="text" placeholder="JJ/MM/AAAA" value="'+today()+'" style="width:110px">'+
+    '<button class="action-btn" style="width:auto;white-space:nowrap;margin-bottom:0" onclick="addPaiement('+c.id+')">Ajouter</button>'+
+    '</div></div>';
+  return html;
+}
+
+function addPaiement(id){
+  var montantEl=document.getElementById('paiement-mont-'+id);
+  var dateEl=document.getElementById('paiement-date-'+id);
+  var montant=parseFloat((montantEl.value||'').replace(',','.'));
+  var date=(dateEl.value||'').trim()||today();
+  if(isNaN(montant)||montant<=0){toast('Montant invalide');return;}
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  c.paiements=c.paiements||[];
+  c.paiements.push({montant:montant,date:date});
+  c.paye=(c.paye||0)+montant;
+  save();toast('Paiement de '+montant+'€ enregistré ✓');showDetail(id);
+}
+
+function deletePaiement(id,idx){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c||!c.paiements||!c.paiements[idx])return;
+  if(!confirm('Supprimer ce paiement ?'))return;
+  var removed=c.paiements[idx];
+  c.paiements.splice(idx,1);
+  c.paye=Math.max(0,(c.paye||0)-(removed.montant||0));
+  save();toast('Paiement supprimé');showDetail(id);
 }
 
 function addSeanceNote(id){
