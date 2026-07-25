@@ -1,5 +1,5 @@
-var CACHE = 'ofc-crm-v4';
-var ASSETS = ['./crm.html', './facturation.html', './index.html', './manifest.json', './icon.png'];
+var CACHE = 'ofc-crm-v5';
+var ASSETS = ['./crm.html', './facturation.html', './dashboard.html', './index.html', './manifest.json', './icon.png'];
 
 self.addEventListener('install', function(e) {
   e.waitUntil(

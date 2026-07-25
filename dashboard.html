@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="OFC Dashboard">
+<meta name="theme-color" content="#C96358">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<title>Dashboard — OFC Coach</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --accent:#C96358;--accent-light:#FAECE7;--accent-dark:#993C1D;
+  --bg:#FAF8F5;--surface:#FFFFFF;--surface2:#F5F2EE;
+  --text:#1E1616;--text2:#7A6E6E;--text3:#B0A8A8;
+  --border:#E8E0D8;--border2:#D4C8C0;
+  --green:#3B6D11;--green-bg:#EAF3DE;
+  --amber:#854F0B;--amber-bg:#FAEEDA;
+  --blue:#185FA5;--blue-bg:#E6F1FB;
+  --red:#993C1D;--red-bg:#FAECE7;
+  --radius:14px;--radius-sm:8px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+.app-header{background:var(--surface);padding:16px 20px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between}
+.app-title{font-size:17px;font-weight:600;color:var(--text)}
+.app-date{font-size:12px;color:var(--text2);margin-top:1px}
+.home-link{background:none;border:none;color:var(--accent);font-size:13px;font-weight:600;text-decoration:none}
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 10px;gap:0;overflow-x:auto}
+.tab{flex:1;text-align:center;padding:10px 4px;font-size:12px;font-weight:500;color:var(--text2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.section{display:none;padding:14px 16px 40px;min-height:200px}
+.section.active{display:block}
+.dcard{background:var(--surface);border-radius:var(--radius);padding:14px;margin-bottom:10px;border:1px solid var(--border)}
+.dcard-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.dcard-edit{font-size:12px;color:var(--accent);font-weight:500;background:none;border:none;cursor:pointer;text-transform:none;letter-spacing:0}
+.big-num{text-align:center;margin-bottom:4px}
+.big-num span:first-child{font-size:34px;font-weight:700;color:var(--text)}
+.big-num span:last-child{font-size:16px;color:var(--text2)}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);gap:10px}
+.info-row:last-child{border-bottom:none}
+.info-l{font-size:12px;color:var(--text2)}
+.info-v{font-size:12px;font-weight:600;color:var(--text);text-align:right}
+.form-group{margin-bottom:10px}
+.form-label{font-size:12px;color:var(--text2);margin-bottom:4px;display:block;font-weight:500}
+.form-input{width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);-webkit-appearance:none}
+select.form-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M6 8 0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:11px 7px;padding-right:34px;cursor:pointer}
+.form-input:focus{outline:none;border-color:var(--accent)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.save-btn{width:100%;padding:14px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;margin-top:6px}
+.action-btn{width:100%;padding:11px;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;margin-bottom:6px;text-align:center}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1E1616;color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1}
+.empty{text-align:center;padding:24px 16px;color:var(--text2);font-size:13px}
+/* INDICATEUR OBJECTIF */
+.indic{border-radius:var(--radius-sm);padding:10px 13px;font-size:12px;font-weight:700;text-align:center;margin-top:8px}
+.indic-vert{background:var(--green-bg);color:var(--green)}
+.indic-orange{background:var(--amber-bg);color:var(--amber)}
+.indic-rouge{background:var(--red-bg);color:var(--red)}
+/* CHART */
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:6px}
+.chart-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.chart-bar{width:100%;background:var(--accent-light);border-radius:3px 3px 0 0;transition:height .3s;min-height:2px}
+.chart-bar.latest{background:var(--accent)}
+.chart-lbl{font-size:9px;color:var(--text3);text-align:center}
+.chart-val{font-size:9px;color:var(--text2);text-align:center;font-weight:600}
+/* PROSPECT CARD */
+.pcard{background:var(--surface);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;border:1px solid var(--border);cursor:pointer}
+.pcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.pname{font-size:14px;font-weight:600;color:var(--text)}
+.psub{font-size:11px;color:var(--text2);margin-top:2px}
+.pdel{background:none;border:none;color:#E24B4A;font-size:12px;cursor:pointer;padding:2px 6px;flex-shrink:0}
+.pstatut{font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;margin-top:6px;display:inline-block}
+.pstatut-en_attente{background:var(--blue-bg);color:var(--blue)}
+.pstatut-relance_j2{background:var(--amber-bg);color:var(--amber)}
+.pstatut-relance_j5{background:var(--red-bg);color:var(--red)}
+.pstatut-converti{background:var(--green-bg);color:var(--green)}
+.pstatut-perdu{background:var(--surface2);color:var(--text2)}
+.prelance{font-size:11px;font-weight:700;color:var(--red);margin-top:6px}
+/* SCRIPT BOX */
+.script-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px}
+.script-text{width:100%;min-height:100px;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface2);color:var(--text);font-family:inherit;resize:vertical;margin-bottom:8px}
+/* CHARGES ROW */
+.charge-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.charge-row .form-input{flex:1}
+.charge-row button{background:none;border:none;color:#E24B4A;font-size:16px;cursor:pointer;padding:0 4px}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div><div class="app-title">📊 Dashboard business</div><div class="app-date" id="today-date"></div></div>
+  <a class="home-link" href="index.html">← Accueil</a>
+</div>
+<div class="tabs">
+  <button class="tab active" onclick="showTab('dash')">Dashboard</button>
+  <button class="tab" onclick="showTab('prospects')">Prospects</button>
+  <button class="tab" onclick="showTab('reco')">💡 Reco</button>
+  <button class="tab" onclick="showTab('scripts')">Scripts</button>
+  <button class="tab" onclick="showTab('charges')">Charges</button>
+</div>
+
+<!-- ── DASHBOARD ─────────────────────────────────────────────── -->
+<div id="section-dash" class="section active"></div>
+
+<!-- ── PROSPECTS ─────────────────────────────────────────────── -->
+<div id="section-prospects" class="section">
+  <div class="dcard"><div class="dcard-title">Taux de conversion</div><div id="prospects-stats"></div></div>
+  <button class="save-btn" style="margin-bottom:14px" onclick="openProspectForm(null)">+ Ajouter un prospect</button>
+  <div id="prospect-form-panel" style="display:none"></div>
+  <div id="prospects-list"></div>
+</div>
+
+<!-- ── RECOMMANDATIONS ───────────────────────────────────────── -->
+<div id="section-reco" class="section"></div>
+
+<!-- ── SCRIPTS ───────────────────────────────────────────────── -->
+<div id="section-scripts" class="section"></div>
+
+<!-- ── CHARGES & TRÉSORERIE ──────────────────────────────────── -->
+<div id="section-charges" class="section">
+  <div class="dcard">
+    <div class="dcard-title">Paramètres</div>
+    <div class="form-group"><label class="form-label">Objectif net mensuel (€)</label>
+      <input class="form-input" id="cfg-objectif" type="number" onchange="onConfigChange()"></div>
+    <div class="form-group" style="margin-bottom:0"><label class="form-label">Taux URSSAF (%)</label>
+      <input class="form-input" id="cfg-taux" type="number" onchange="onConfigChange()"></div>
+  </div>
+  <div class="dcard">
+    <div class="dcard-title">Charges fixes mensuelles<button class="dcard-edit" onclick="addChargeRow()">+ Ligne</button></div>
+    <div id="charges-rows"></div>
+    <div class="info-row"><span class="info-l" style="font-weight:700">Total</span><span class="info-v" id="charges-total"></span></div>
+  </div>
+  <div class="dcard"><div class="dcard-title">Prochain versement URSSAF (estimation)</div><div id="urssaf-estim"></div></div>
+  <div class="dcard"><div class="dcard-title">Trésorerie prévisionnelle (3 mois, estimation)</div><div id="tresorerie-view"></div>
+  <p style="font-size:11px;color:var(--text3);margin-top:8px">ℹ️ Estimation approximative : suppose que les clientes actives sur une offre "au mois" renouvellent chaque mois, plus le solde restant à encaisser des clientes actives.</p></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+if(localStorage.getItem('ofc_tools_auth')!=='ok'){window.location.replace('./?r=dashboard');}
+
+var MOIS_FR=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+function today(){return new Date().toLocaleDateString('fr-FR');}
+function gv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+function gn(id){var v=parseFloat(gv(id));return isNaN(v)?null:v;}
+function parseDateFR(d){var p=d?d.split('/'):[];return p.length===3?new Date(+p[2],+p[1]-1,+p[0]):new Date(NaN);}
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}
+function showTab(name){
+  var tabs=['dash','prospects','reco','scripts','charges'];
+  document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',tabs[i]===name);});
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('section-'+name).classList.add('active');
+  if(name==='reco')renderReco();
+}
+
+// ── DONNÉES CRM (lecture seule — jamais réécrites dans ofc_crm_v7) ──
+var clients=[];
+try{ clients=JSON.parse(localStorage.getItem('ofc_crm_v7')||'[]')||[]; }catch(e){ clients=[]; }
+
+// Même logique que renderRevenus() dans crm.html : le journal de paiements datés
+// fait foi quand il existe (couvre les renouvellements), sinon payé + historique.
+function totalClient(c){
+  if(c.paiements&&c.paiements.length)return c.paiements.reduce(function(s,p){return s+(p.montant||0);},0);
+  var hist=(c.historique||[]).reduce(function(s,h){return s+(h.paye||0);},0);
+  return hist+(c.paye||0);
+}
+function revenuParMois(){
+  var map={};
+  clients.forEach(function(c){
+    (c.paiements||[]).forEach(function(p){
+      var d=parseDateFR(p.date);
+      if(isNaN(d.getTime()))return;
+      var key=d.getFullYear()+'-'+d.getMonth();
+      map[key]=(map[key]||0)+(p.montant||0);
+    });
+  });
+  return map;
+}
+
+// ── CONFIG FINANCE ───────────────────────────────────────────
+var CONFIG_KEY='ofc_finance_config_v1';
+function defaultConfig(){
+  return {objectifNet:1800, tauxUrssaf:22, charges:[
+    {label:'Assurance pro',montant:0},{label:'Déplacement',montant:0},
+    {label:'Communication',montant:0},{label:'Outils/Abonnements',montant:0}
+  ]};
+}
+function loadConfig(){
+  try{ var s=localStorage.getItem(CONFIG_KEY); if(!s)return defaultConfig(); var c=JSON.parse(s); if(!c.charges)c.charges=[]; return c; }
+  catch(e){ return defaultConfig(); }
+}
+function saveConfig(cfg){ localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); }
+var config=loadConfig();
+
+function chargesTotal(){ return config.charges.reduce(function(s,c){return s+(c.montant||0);},0); }
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function renderDash(){
+  var map=revenuParMois();
+  var now=new Date();
+  var months=[];
+  for(var i=5;i>=0;i--){
+    var d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    var key=d.getFullYear()+'-'+d.getMonth();
+    months.push({key:key, label:MOIS_FR[d.getMonth()].slice(0,3), total:map[key]||0, isCurrent:i===0});
+  }
+  var caMois=months[months.length-1].total;
+  var charges=chargesTotal();
+  var net=Math.round((caMois-(caMois*config.tauxUrssaf/100)-charges)*100)/100;
+  var ecart=Math.round((config.objectifNet-net)*100)/100;
+  var pct=config.objectifNet?Math.round(net/config.objectifNet*100):0;
+  var caPourObjectif=Math.round(((config.objectifNet+charges)/(1-config.tauxUrssaf/100))*100)/100;
+  var indicClass=pct>=100?'indic-vert':pct>=70?'indic-orange':'indic-rouge';
+  var indicTxt=pct>=100?'✅ Objectif atteint ce mois-ci !':pct>=70?'🟠 Presque — il manque '+Math.max(0,ecart)+' € net':'🔴 Il manque '+Math.max(0,ecart)+' € net pour atteindre l\'objectif';
+
+  var maxTotal=Math.max.apply(null,months.map(function(m){return m.total;}).concat([1]));
+  var chartHtml='<div class="chart-bars">'+months.map(function(m){
+    var h=Math.round((m.total/maxTotal)*70)+6;
+    return '<div class="chart-bar-col"><div class="chart-val">'+(m.total?Math.round(m.total)+'€':'')+'</div>'+
+      '<div class="chart-bar'+(m.isCurrent?' latest':'')+'" style="height:'+h+'px"></div>'+
+      '<div class="chart-lbl">'+m.label+'</div></div>';
+  }).join('')+'</div>';
+
+  var html='<div class="dcard">'+
+    '<div class="dcard-title">Objectif du mois</div>'+
+    '<div class="big-num"><span>'+net+'</span><span>€ net / '+config.objectifNet+'€</span></div>'+
+    '<div class="indic '+indicClass+'">'+indicTxt+'</div>'+
+    '</div>';
+  html+='<div class="dcard"><div class="dcard-title">CA encaissé — 6 derniers mois</div>'+chartHtml+
+    '<div class="info-row" style="margin-top:10px"><span class="info-l">CA de ce mois (encaissé)</span><span class="info-v">'+caMois+' €</span></div>'+
+    '</div>';
+  html+='<div class="dcard"><div class="dcard-title">Calcul du net</div>'+
+    '<div class="info-row"><span class="info-l">CA encaissé</span><span class="info-v">'+caMois+' €</span></div>'+
+    '<div class="info-row"><span class="info-l">− URSSAF ('+config.tauxUrssaf+'%)</span><span class="info-v">−'+Math.round(caMois*config.tauxUrssaf/100)+' €</span></div>'+
+    '<div class="info-row"><span class="info-l">− Charges fixes</span><span class="info-v">−'+charges+' €</span></div>'+
+    '<div class="info-row"><span class="info-l" style="font-weight:700">= Net réel</span><span class="info-v" style="font-weight:700">'+net+' €</span></div>'+
+    '</div>';
+  html+='<div class="dcard"><div class="dcard-title">CA à facturer pour atteindre l\'objectif</div>'+
+    '<div class="big-num"><span>'+caPourObjectif+'</span><span>€</span></div>'+
+    '<p style="font-size:11px;color:var(--text3);text-align:center;margin-top:4px">(objectif + charges) ÷ (1 − taux URSSAF)</p></div>';
+  document.getElementById('section-dash').innerHTML=html;
+}
+
+// ── PROSPECTS ─────────────────────────────────────────────────
+var PROSPECTS_KEY='ofc_prospects_v1';
+var prospects=[];
+try{ prospects=JSON.parse(localStorage.getItem(PROSPECTS_KEY)||'[]')||[]; }catch(e){ prospects=[]; }
+var nextProspectId=1+Math.max.apply(null,[0].concat(prospects.map(function(p){return p.id||0;})));
+function saveProspects(){ localStorage.setItem(PROSPECTS_KEY, JSON.stringify(prospects)); }
+
+var STATUTS_PROSPECT=[
+  {val:'en_attente',label:'En attente'},{val:'relance_j2',label:'Relancé J+2'},
+  {val:'relance_j5',label:'Relancé J+5'},{val:'converti',label:'Converti'},{val:'perdu',label:'Perdu'}
+];
+
+function relanceInfo(p){
+  if(p.statut!=='en_attente')return null;
+  var d=parseDateFR(p.dateBilan);
+  if(isNaN(d.getTime()))return null;
+  var days=Math.floor((new Date()-d)/86400000);
+  if(days>=5)return '⏰ Dernière relance (J+'+days+')';
+  if(days>=2)return '⏰ À relancer (J+'+days+')';
+  return null;
+}
+
+function openProspectForm(id){
+  var p=id?prospects.find(function(x){return x.id===id;}):null;
+  var html='<div class="dcard">'+
+    '<div class="dcard-title">'+(p?'Modifier le prospect':'Nouveau prospect')+'</div>'+
+    '<div class="form-group"><label class="form-label">Nom</label><input class="form-input" id="pf-nom" value="'+(p?p.nom||'':'')+'"></div>'+
+    '<div class="form-group"><label class="form-label">Téléphone</label><input class="form-input" id="pf-tel" value="'+(p?p.telephone||'':'')+'"></div>'+
+    '<div class="form-row">'+
+    '<div class="form-group"><label class="form-label">Date du bilan</label><input class="form-input" id="pf-date" placeholder="JJ/MM/AAAA" value="'+(p?p.dateBilan||today():today())+'"></div>'+
+    '<div class="form-group"><label class="form-label">Statut</label><select class="form-input" id="pf-statut">'+
+    STATUTS_PROSPECT.map(function(s){return '<option value="'+s.val+'"'+(p&&p.statut===s.val?' selected':'')+'>'+s.label+'</option>';}).join('')+
+    '</select></div></div>'+
+    '<div class="form-group"><label class="form-label">Offre recommandée</label><input class="form-input" id="pf-offre" value="'+(p?p.offreRecommandee||'':'')+'"></div>'+
+    '<div class="form-group" style="margin-bottom:0"><label class="form-label">Notes</label><input class="form-input" id="pf-notes" value="'+(p?p.notes||'':'')+'"></div>'+
+    '<button class="save-btn" onclick="saveProspect('+(id||'null')+')">Enregistrer</button>'+
+    '<button class="action-btn" onclick="closeProspectForm()">Annuler</button>'+
+    '</div>';
+  document.getElementById('prospect-form-panel').innerHTML=html;
+  document.getElementById('prospect-form-panel').style.display='block';
+}
+function closeProspectForm(){ document.getElementById('prospect-form-panel').style.display='none'; }
+function saveProspect(id){
+  var nom=gv('pf-nom');
+  if(!nom){toast('Le nom est requis');return;}
+  var data={nom:nom, telephone:gv('pf-tel'), dateBilan:gv('pf-date'), statut:gv('pf-statut'), offreRecommandee:gv('pf-offre'), notes:gv('pf-notes')};
+  if(id){
+    var p=prospects.find(function(x){return x.id===id;});
+    if(p)Object.assign(p,data);
+  } else {
+    data.id=nextProspectId++;
+    prospects.push(data);
+  }
+  saveProspects();closeProspectForm();renderProspects();toast('Prospect enregistré ✓');
+}
+function deleteProspect(id){
+  if(!confirm('Supprimer ce prospect ?'))return;
+  prospects=prospects.filter(function(p){return p.id!==id;});
+  saveProspects();renderProspects();toast('Prospect supprimé');
+}
+function renderProspects(){
+  var convertis=prospects.filter(function(p){return p.statut==='converti';}).length;
+  var perdus=prospects.filter(function(p){return p.statut==='perdu';}).length;
+  var base=convertis+perdus;
+  var taux=base?Math.round(convertis/base*100):null;
+  document.getElementById('prospects-stats').innerHTML=
+    '<div class="info-row"><span class="info-l">Bilans faits</span><span class="info-v">'+prospects.length+'</span></div>'+
+    '<div class="info-row"><span class="info-l">Convertis</span><span class="info-v">'+convertis+'</span></div>'+
+    '<div class="info-row"><span class="info-l">Taux de conversion</span><span class="info-v">'+(taux===null?'—':taux+'%')+'</span></div>';
+  var sorted=prospects.slice().sort(function(a,b){return parseDateFR(b.dateBilan)-parseDateFR(a.dateBilan);});
+  document.getElementById('prospects-list').innerHTML=sorted.length?sorted.map(function(p){
+    var rel=relanceInfo(p);
+    var st=STATUTS_PROSPECT.find(function(s){return s.val===p.statut;});
+    return '<div class="pcard" onclick="openProspectForm('+p.id+')">'+
+      '<div class="pcard-top"><div><div class="pname">'+p.nom+'</div>'+
+      '<div class="psub">Bilan le '+(p.dateBilan||'—')+(p.offreRecommandee?' · '+p.offreRecommandee:'')+'</div></div>'+
+      '<button class="pdel" onclick="event.stopPropagation();deleteProspect('+p.id+')">✕</button></div>'+
+      '<span class="pstatut pstatut-'+p.statut+'">'+(st?st.label:p.statut)+'</span>'+
+      (rel?'<div class="prelance">'+rel+'</div>':'')+
+      '</div>';
+  }).join(''):'<div class="empty">Aucun prospect pour l\'instant</div>';
+}
+
+// ── RECOMMANDATIONS ───────────────────────────────────────────
+var CATALOGUE=[
+  {label:'Option nutrition',prix:40},
+  {label:'Abonnement domicile 1×/sem (1 mois)',prix:260},
+  {label:'Hybride Performance (1 mois)',prix:169},
+  {label:'Forfait Performance (10 séances)',prix:650},
+  {label:'Forfait Fidélité (24 séances)',prix:1200}
+];
+function renderReco(){
+  var map=revenuParMois();
+  var now=new Date();
+  var key=now.getFullYear()+'-'+now.getMonth();
+  var caMois=map[key]||0;
+  var charges=chargesTotal();
+  var net=caMois-(caMois*config.tauxUrssaf/100)-charges;
+  var ecartNet=config.objectifNet-net;
+
+  var html='';
+  if(ecartNet<=0){
+    html='<div class="dcard"><div class="dcard-title">💡 Recommandations</div>'+
+      '<p style="font-size:13px;color:var(--green);font-weight:600">✅ Objectif déjà atteint ce mois-ci, rien à combler !</p></div>';
+    document.getElementById('section-reco').innerHTML=html;
+    return;
+  }
+  var caManquant=Math.round(ecartNet/(1-config.tauxUrssaf/100));
+  var actifs=clients.filter(function(c){return c.statut==='Actif';});
+  var restant=caManquant, actions=[];
+
+  var sansNutrition=actifs.filter(function(c){return c.offre&&c.offre.toLowerCase().indexOf('nutrition')===-1;});
+  if(restant>0&&sansNutrition.length){
+    var nb=Math.min(sansNutrition.length,Math.max(1,Math.ceil(restant/40)));
+    actions.push(nb+' option'+(nb>1?'s':'')+' nutrition (+40€) — '+sansNutrition.length+' cliente(s) active(s) éligible(s)');
+    restant-=nb*40;
+  }
+  var finDePack=actifs.filter(function(c){return c.seancesPrevues&&(c.seancesPrevues-(c.seancesEffectuees||0))<=1;});
+  if(restant>0&&finDePack.length){
+    var nb2=Math.min(finDePack.length,Math.max(1,Math.ceil(restant/650)));
+    actions.push(nb2+' forfait'+(nb2>1?'s':'')+' Performance (+650€) — '+finDePack.length+' cliente(s) en fin de pack');
+    restant-=nb2*650;
+  }
+  var convertibles=actifs.filter(function(c){return c.offre&&/distanciel|hybride/i.test(c.offre);});
+  if(restant>0&&convertibles.length){
+    var nb3=Math.min(convertibles.length,Math.max(1,Math.ceil(restant/260)));
+    actions.push(nb3+' conversion'+(nb3>1?'s':'')+' distanciel/hybride → domicile 1×/sem (+260€) — '+convertibles.length+' candidate(s)');
+    restant-=nb3*260;
+  }
+  if(restant>0){
+    var nb4=Math.ceil(restant/169);
+    actions.push(nb4+' nouvelle'+(nb4>1?'s':'')+' cliente'+(nb4>1?'s':'')+' sur l\'offre Hybride Performance (+169€ chacune)');
+    restant-=nb4*169;
+  }
+
+  html='<div class="dcard"><div class="dcard-title">💡 Il te manque</div>'+
+    '<div class="big-num"><span>'+Math.round(ecartNet)+'</span><span>€ net ce mois-ci</span></div>'+
+    '<p style="font-size:11px;color:var(--text3);text-align:center">≈ '+caManquant+' € de CA supplémentaire à encaisser</p></div>';
+  html+='<div class="dcard"><div class="dcard-title">Suggestions (suggestion, pas garanti)</div>'+
+    actions.map(function(a,i){return '<div class="info-row"><span class="info-l">'+(i+1)+'.</span><span class="info-v" style="text-align:left;max-width:100%">'+a+'</span></div>';}).join('')+
+    '</div>';
+  html+='<div class="dcard"><div class="dcard-title">Catalogue de référence</div>'+
+    CATALOGUE.map(function(o){return '<div class="info-row"><span class="info-l">'+o.label+'</span><span class="info-v">'+o.prix+'€</span></div>';}).join('')+
+    '</div>';
+  document.getElementById('section-reco').innerHTML=html;
+}
+
+// ── SCRIPTS ───────────────────────────────────────────────────
+var SCRIPTS_KEY='ofc_scripts_v1';
+function defaultScripts(){
+  return [
+    {id:1,titre:'Relance bilan gratuit sans réponse (J+2)',texte:"Coucou [Prénom] 😊 Je voulais prendre de tes nouvelles après notre bilan ! Tu as eu le temps d'y réfléchir ? Je suis dispo si tu as des questions sur [Offre] 💪"},
+    {id:2,titre:'Relance sans réponse (J+5, dernière relance)',texte:"Hello [Prénom] ! Je me permets de revenir vers toi une dernière fois 😊 Si le timing n'est pas encore le bon, pas de souci, dis-moi juste et je te recontacte plus tard. Sinon je serais ravie de t'accompagner avec [Offre] !"},
+    {id:3,titre:'Objection "c\'est trop cher"',texte:"Je comprends totalement [Prénom], le budget c'est important ! [Offre] revient à un prix très raisonnable la séance de coaching individualisé — beaucoup moins qu'une salle + un mauvais résultat. On peut aussi voir une formule plus légère pour commencer si tu préfères 😊"},
+    {id:4,titre:'Proposer un forfait en fin d\'engagement',texte:"[Prénom], ton programme actuel touche à sa fin et je suis hyper fière de tes progrès ! 🙌 Pour la suite je te propose [Offre] pour continuer sur cette lancée sans perdre le rythme. On en parle ?"},
+    {id:5,titre:'DM Instagram à une prospecte qui interagit',texte:"Hello [Prénom] 👋 J'ai vu que tu suis mon compte, ça me fait super plaisir ! Je propose du coaching sportif personnalisé (présentiel Essonne / à distance), si jamais ça t'intéresse d'en discuter, sans engagement 😊"}
+  ];
+}
+function loadScripts(){
+  try{ var s=localStorage.getItem(SCRIPTS_KEY); return s?JSON.parse(s):defaultScripts(); }
+  catch(e){ return defaultScripts(); }
+}
+function saveScripts(scripts){ localStorage.setItem(SCRIPTS_KEY, JSON.stringify(scripts)); }
+var scripts=loadScripts();
+
+function renderScripts(){
+  var html=scripts.map(function(s){
+    return '<div class="dcard">'+
+      '<div class="script-title">'+s.titre+'</div>'+
+      '<div class="form-row"><input class="form-input" id="s-prenom-'+s.id+'" placeholder="Prénom"><input class="form-input" id="s-offre-'+s.id+'" placeholder="Offre"></div>'+
+      '<textarea class="script-text" id="s-texte-'+s.id+'" onchange="onScriptEdit('+s.id+')">'+s.texte+'</textarea>'+
+      '<button class="save-btn" style="margin-top:0" onclick="copyScript('+s.id+')">📋 Copier</button>'+
+      '</div>';
+  }).join('');
+  document.getElementById('section-scripts').innerHTML=html;
+}
+function onScriptEdit(id){
+  var s=scripts.find(function(x){return x.id===id;});
+  if(s){ s.texte=gv('s-texte-'+id); saveScripts(scripts); }
+}
+function copyScript(id){
+  var s=scripts.find(function(x){return x.id===id;});
+  if(!s)return;
+  var txt=gv('s-texte-'+id);
+  var prenom=gv('s-prenom-'+id), offre=gv('s-offre-'+id);
+  if(prenom)txt=txt.split('[Prénom]').join(prenom);
+  if(offre)txt=txt.split('[Offre]').join(offre);
+  navigator.clipboard.writeText(txt).then(function(){toast('Copié ✓');}).catch(function(){toast('Impossible de copier');});
+}
+
+// ── CHARGES & TRÉSORERIE ──────────────────────────────────────
+function onConfigChange(){
+  config.objectifNet=gn('cfg-objectif')||0;
+  config.tauxUrssaf=gn('cfg-taux')||0;
+  saveConfig(config);
+  renderDash();renderCharges();
+}
+function addChargeRow(){
+  config.charges.push({label:'',montant:0});
+  saveConfig(config);renderCharges();
+}
+function onChargeEdit(i){
+  config.charges[i].label=gv('charge-label-'+i);
+  config.charges[i].montant=gn('charge-mont-'+i)||0;
+  saveConfig(config);
+  document.getElementById('charges-total').textContent=chargesTotal()+' €';
+  renderDash();
+}
+function deleteChargeRow(i){
+  config.charges.splice(i,1);
+  saveConfig(config);renderCharges();renderDash();
+}
+function renderCharges(){
+  document.getElementById('cfg-objectif').value=config.objectifNet;
+  document.getElementById('cfg-taux').value=config.tauxUrssaf;
+  document.getElementById('charges-rows').innerHTML=config.charges.map(function(c,i){
+    return '<div class="charge-row">'+
+      '<input class="form-input" id="charge-label-'+i+'" placeholder="Libellé" value="'+c.label+'" onchange="onChargeEdit('+i+')">'+
+      '<input class="form-input" id="charge-mont-'+i+'" type="number" placeholder="€" value="'+c.montant+'" onchange="onChargeEdit('+i+')" style="max-width:90px">'+
+      '<button onclick="deleteChargeRow('+i+')">✕</button></div>';
+  }).join('')||'<p style="font-size:12px;color:var(--text3)">Aucune charge — clique "+ Ligne"</p>';
+  document.getElementById('charges-total').textContent=chargesTotal()+' €';
+
+  var map=revenuParMois();
+  var now=new Date();
+  var caMois=map[now.getFullYear()+'-'+now.getMonth()]||0;
+  document.getElementById('urssaf-estim').innerHTML=
+    '<div class="info-row"><span class="info-l">CA du mois × '+config.tauxUrssaf+'%</span><span class="info-v" style="font-weight:700">'+Math.round(caMois*config.tauxUrssaf/100)+' €</span></div>';
+
+  var actifs=clients.filter(function(c){return c.statut==='Actif';});
+  var recurrents=actifs.filter(function(c){return c.offre&&/mois|mensuel/i.test(c.offre);});
+  var recurrentTotal=recurrents.reduce(function(s,c){return s+(c.montant||0);},0);
+  var solde=actifs.reduce(function(s,c){return s+Math.max(0,(c.montant||0)-(c.paye||0));},0);
+  var m1=recurrentTotal+solde, m2=recurrentTotal, m3=recurrentTotal;
+  document.getElementById('tresorerie-view').innerHTML=
+    '<div class="info-row"><span class="info-l">Mois prochain (M+1)</span><span class="info-v">≈ '+m1+' €</span></div>'+
+    '<div class="info-row"><span class="info-l">M+2</span><span class="info-v">≈ '+m2+' €</span></div>'+
+    '<div class="info-row"><span class="info-l">M+3</span><span class="info-v">≈ '+m3+' €</span></div>'+
+    '<div class="info-row"><span class="info-l">Basé sur</span><span class="info-v">'+recurrents.length+' abo. récurrent(s) + '+solde+'€ de solde à encaisser</span></div>';
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+document.getElementById('today-date').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+renderDash();renderProspects();renderScripts();renderCharges();
+
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').catch(function(){}); }
+</script>
+</body>
+</html>
