@@ -961,6 +961,13 @@ function onOffreChange(){
     if(offre.prix){document.getElementById('f-mont').value=offre.prix;}
     if(offre.seances){document.getElementById('f-sp').value=offre.seances;}
   }
+  if(val){
+    // Choisir une offre = démarrer un nouveau pack : on repart de zéro séance/paiement
+    document.getElementById('f-se').value=0;
+    document.getElementById('f-paye').value=0;
+    var statutSel=document.getElementById('f-statut');
+    if(statutSel.value!=='Actif')statutSel.value='Actif';
+  }
 }
 
 function getOffreVal(){
