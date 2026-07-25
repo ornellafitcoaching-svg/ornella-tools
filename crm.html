@@ -391,10 +391,13 @@ function renderRevenus(){
   if(!el)return;
   var totalEncaisse=0,resteAEncaisser=0,nbPacks=0;
   var parCliente=clients.map(function(c){
+    var payeActuel=c.paye||0;
+    // Si un vrai relevé de paiements datés existe, il fait foi (couvre plusieurs packs/renouvellements) ;
+    // sinon on retombe sur payé actuel + historique des packs archivés.
+    var ledger=(c.paiements&&c.paiements.length)?c.paiements.reduce(function(s,p){return s+(p.montant||0);},0):null;
     var hist=c.historique||[];
     var payeHist=hist.reduce(function(s,h){return s+(h.paye||0);},0);
-    var payeActuel=c.paye||0;
-    var total=payeHist+payeActuel;
+    var total=ledger!==null?ledger:payeHist+payeActuel;
     totalEncaisse+=total;
     nbPacks+=hist.length+(c.montant?1:0);
     if(c.statut==='Actif'&&c.montant)resteAEncaisser+=Math.max(0,c.montant-payeActuel);
