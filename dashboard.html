@@ -92,7 +92,12 @@ select.form-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
 
 <div class="app-header">
   <div><div class="app-title">📊 Dashboard business</div><div class="app-date" id="today-date"></div></div>
-  <a class="home-link" href="index.html">← Accueil</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="home-link" style="cursor:pointer" onclick="exportDashData()" title="Sauvegarder (télécharger un fichier)">💾</button>
+    <button class="home-link" style="cursor:pointer" onclick="document.getElementById('import-file').click()" title="Restaurer (depuis un fichier)">📂</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importDashData(event)">
+    <a class="home-link" href="index.html">← Accueil</a>
+  </div>
 </div>
 <div class="tabs">
   <button class="tab active" onclick="showTab('dash')">Dashboard</button>
@@ -150,6 +155,11 @@ function gv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
 function gn(id){var v=parseFloat(gv(id));return isNaN(v)?null:v;}
 function parseDateFR(d){var p=d?d.split('/'):[];return p.length===3?new Date(+p[2],+p[1]-1,+p[0]):new Date(NaN);}
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}
+var _dashBackupTimer=null;
+function scheduleAutoBackup(){
+  if(_dashBackupTimer)clearTimeout(_dashBackupTimer);
+  _dashBackupTimer=setTimeout(function(){ try{exportDashData();}catch(e){} },3000);
+}
 function showTab(name){
   var tabs=['dash','prospects','reco','scripts','charges'];
   document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',tabs[i]===name);});
@@ -194,7 +204,7 @@ function loadConfig(){
   try{ var s=localStorage.getItem(CONFIG_KEY); if(!s)return defaultConfig(); var c=JSON.parse(s); if(!c.charges)c.charges=[]; return c; }
   catch(e){ return defaultConfig(); }
 }
-function saveConfig(cfg){ localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); }
+function saveConfig(cfg){ localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); scheduleAutoBackup(); }
 var config=loadConfig();
 
 function chargesTotal(){ return config.charges.reduce(function(s,c){return s+(c.montant||0);},0); }
@@ -251,7 +261,7 @@ var PROSPECTS_KEY='ofc_prospects_v1';
 var prospects=[];
 try{ prospects=JSON.parse(localStorage.getItem(PROSPECTS_KEY)||'[]')||[]; }catch(e){ prospects=[]; }
 var nextProspectId=1+Math.max.apply(null,[0].concat(prospects.map(function(p){return p.id||0;})));
-function saveProspects(){ localStorage.setItem(PROSPECTS_KEY, JSON.stringify(prospects)); }
+function saveProspects(){ localStorage.setItem(PROSPECTS_KEY, JSON.stringify(prospects)); scheduleAutoBackup(); }
 
 var STATUTS_PROSPECT=[
   {val:'en_attente',label:'En attente'},{val:'relance_j2',label:'Relancé J+2'},
@@ -408,7 +418,7 @@ function loadScripts(){
   try{ var s=localStorage.getItem(SCRIPTS_KEY); return s?JSON.parse(s):defaultScripts(); }
   catch(e){ return defaultScripts(); }
 }
-function saveScripts(scripts){ localStorage.setItem(SCRIPTS_KEY, JSON.stringify(scripts)); }
+function saveScripts(scripts){ localStorage.setItem(SCRIPTS_KEY, JSON.stringify(scripts)); scheduleAutoBackup(); }
 var scripts=loadScripts();
 
 function renderScripts(){
@@ -485,6 +495,46 @@ function renderCharges(){
     '<div class="info-row"><span class="info-l">M+2</span><span class="info-v">≈ '+m2+' €</span></div>'+
     '<div class="info-row"><span class="info-l">M+3</span><span class="info-v">≈ '+m3+' €</span></div>'+
     '<div class="info-row"><span class="info-l">Basé sur</span><span class="info-v">'+recurrents.length+' abo. récurrent(s) + '+solde+'€ de solde à encaisser</span></div>';
+}
+
+// ── SAUVEGARDE / RESTAURATION (prospects + config + scripts — pas les clientes, déjà gérées par le CRM) ──
+function exportDashData(){
+  var json=JSON.stringify({version:'ofc-dashboard-v1',date:new Date().toISOString(),prospects:prospects,config:config,scripts:scripts},null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  var d=new Date().toLocaleDateString('fr-FR').replace(/\//g,'-');
+  a.href=url;a.download='OFC-Sauvegarde-Dashboard-'+d+'.json';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast('Données exportées ✓');
+}
+function importDashData(e){
+  var file=e.target.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var data=JSON.parse(ev.target.result);
+      if(!data.prospects&&!data.config&&!data.scripts)throw new Error();
+      if(!confirm('Restaurer cette sauvegarde du dashboard (prospects, objectifs/charges, scripts) ?\n\n⚠️ Les données actuelles du dashboard seront remplacées. Tes clientes (CRM) ne sont pas concernées.')){
+        e.target.value='';return;
+      }
+      if(Array.isArray(data.prospects)){
+        prospects=data.prospects;
+        nextProspectId=1+Math.max.apply(null,[0].concat(prospects.map(function(p){return p.id||0;})));
+        saveProspects();
+      }
+      if(data.config){ config=data.config; if(!config.charges)config.charges=[]; saveConfig(config); }
+      if(Array.isArray(data.scripts)){ scripts=data.scripts; saveScripts(scripts); }
+      renderDash();renderProspects();renderScripts();renderCharges();
+      toast('Données du dashboard restaurées ✓');
+    }catch(err){
+      toast('Fichier invalide — importation annulée');
+    }
+    e.target.value='';
+  };
+  reader.readAsText(file);
 }
 
 // ── INIT ──────────────────────────────────────────────────────
