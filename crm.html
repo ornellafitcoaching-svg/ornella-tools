@@ -1252,7 +1252,32 @@ function importData(e){
       var data=JSON.parse(ev.target.result);
       var imported=data.clients||data;
       if(!Array.isArray(imported)||!imported.length)throw new Error();
-      if(!confirm('Restaurer '+imported.length+' cliente(s) ?\n\n⚠️ Les données actuelles seront remplacées.')){
+
+      // Garde-fou : détecte si cet import ferait reculer des données déjà plus à jour sur cet appareil
+      // (ex: import d'une sauvegarde plus ancienne alors que des séances/paiements ont été saisis depuis)
+      var regressions=[];
+      imported.forEach(function(nc){
+        var cur=clients.find(function(x){return x.id===nc.id;});
+        if(!cur)return;
+        if((cur.seancesEffectuees||0)>(nc.seancesEffectuees||0)){
+          regressions.push(cur.nom+' — séances : '+(cur.seancesEffectuees||0)+' → '+(nc.seancesEffectuees||0)+' (reculerait)');
+        }
+        if((cur.paye||0)>(nc.paye||0)){
+          regressions.push(cur.nom+' — payé : '+(cur.paye||0)+'€ → '+(nc.paye||0)+'€ (reculerait)');
+        }
+        var curPaiements=(cur.paiements||[]).length, ncPaiements=(nc.paiements||[]).length;
+        if(curPaiements>ncPaiements){
+          regressions.push(cur.nom+' — '+curPaiements+' paiement(s) daté(s) actuellement, seulement '+ncPaiements+' dans le fichier');
+        }
+      });
+
+      var msg='Restaurer '+imported.length+' cliente(s) ?\n\n⚠️ Les données actuelles seront remplacées.';
+      if(regressions.length){
+        msg='🚨 ATTENTION — cet import ferait RECULER des données déjà plus à jour sur cet appareil :\n\n'+
+          regressions.slice(0,12).join('\n')+(regressions.length>12?'\n… et '+(regressions.length-12)+' de plus':'')+
+          '\n\nSi tu continues, ces données plus récentes seront PERDUES et remplacées par celles (plus anciennes) du fichier.\n\nContinuer quand même ?';
+      }
+      if(!confirm(msg)){
         e.target.value='';return;
       }
       clients=imported;
