@@ -587,6 +587,7 @@ function showDetail(id){
       html+='</tr>';
     });
     html+='</tbody></table></div>';
+    html+='<button class="whatsapp-btn no-print" style="margin-top:10px" onclick="sendMensurationRecapWA('+c.id+')">📤 Envoyer le récap du bilan</button>';
   }
   html+='</div>';
 
@@ -645,6 +646,35 @@ function openWA(tel, msg){
     return;
   }
   window.open('https://wa.me/'+t+'?text='+encodeURIComponent(msg));
+}
+
+function sendMensurationRecapWA(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c||!c.mesures||!c.mesures.length){toast('Aucune mensuration enregistrée');return;}
+  var sorted=c.mesures.slice().sort(function(a,b){
+    var pa=a.date.split('/'),pb=b.date.split('/');
+    return new Date(+pa[2],+pa[1]-1,+pa[0])-new Date(+pb[2],+pb[1]-1,+pb[0]);
+  });
+  var last=sorted[sorted.length-1];
+  var lossFields=['poids','tourTaille','tourHanches','tourFessiers','tourCuisses','tourPoitrine','tourDos','tourBras'];
+  var msg='Bonjour '+c.nom.split(' ')[0]+' 😊\n\nVoici ton récap du bilan du '+last.date+' :\n\n';
+  MFIELDS.forEach(function(f){
+    if(last[f.key]==null)return;
+    var withField=sorted.filter(function(m){return m[f.key]!=null;});
+    var first=withField[0];
+    var line=f.label+' : '+last[f.key]+' '+f.unit;
+    if(withField.length>1&&first!==last){
+      var dt=Math.round((last[f.key]-first[f.key])*10)/10;
+      if(dt!==0){
+        var isLoss=lossFields.indexOf(f.key)>=0;
+        var good=isLoss?dt<0:dt>0;
+        line+=' ('+(dt>0?'+':'')+dt+' '+f.unit+' depuis le début'+(good?' 👍':'')+')';
+      }
+    }
+    msg+=line+'\n';
+  });
+  msg+='\nContinue comme ça, tu progresses super bien ! 💪';
+  openWA(c.telephone, msg);
 }
 
 function sendWA(id){
