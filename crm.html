@@ -356,6 +356,24 @@ function quickTerminee(id){
   toast(c.nom.split(' ')[0]+' marquée comme terminée ✓');
 }
 
+function marquerBilanEffectue(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  c.dernierBilanEffectueLe=today();
+  if(!save())return;
+  showDetail(id);
+  toast('Bilan marqué comme effectué ✓');
+}
+
+function saveAjustements(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  c.ajustementsAFaire=gv('ajust-'+id);
+  if(!save())return;
+  showDetail(id);
+  toast('Ajustements enregistrés ✓');
+}
+
 function bilanDuCeMois(c){
   if(!c.debut||c.statut!=='Actif')return false;
   var d=parseDateFR(c.debut);
@@ -524,6 +542,18 @@ function showDetail(id){
       renderSeancesLog(c)+
       '</div>';
   }
+
+  // ── BILAN & AJUSTEMENTS ────────────────────────────────────────
+  html+='<div class="dcard"><div class="dcard-title">Bilan & Ajustements</div>'+
+    '<div class="info-row"><span class="info-l">Dernier bilan effectué</span><span class="info-v">'+(c.dernierBilanEffectueLe||'—')+'</span></div>'+
+    '<button class="action-btn no-print" style="margin-top:8px" onclick="marquerBilanEffectue('+c.id+')">☑️ Marquer bilan effectué aujourd\'hui</button>'+
+    '<div class="form-group no-print" style="margin-top:10px;margin-bottom:0">'+
+    '<label class="form-label">Ajustements à faire</label>'+
+    '<input class="form-input" id="ajust-'+c.id+'" value="'+(c.ajustementsAFaire||'').replace(/"/g,'&quot;')+'" placeholder="ex: augmenter charges dos, revoir petit-déj...">'+
+    '<button class="action-btn" style="margin-top:6px;margin-bottom:0" onclick="saveAjustements('+c.id+')">Enregistrer</button>'+
+    '</div>'+
+    (c.ajustementsAFaire?'<p class="no-print" style="font-size:11px;color:var(--text3);margin-top:6px">📝 '+c.ajustementsAFaire+'</p>':'')+
+    '</div>';
 
   // ── PAIEMENT ────────────────────────────────────────────────
   if(c.montant){
@@ -1341,6 +1371,12 @@ function importData(e){
         }
         if(cur.dernierBilanEnvoye&&!nc.dernierBilanEnvoye){
           regressions.push(cur.nom+' — "bilan envoyé ('+cur.dernierBilanEnvoye+')" perdrait sa coche');
+        }
+        if(cur.dernierBilanEffectueLe&&!nc.dernierBilanEffectueLe){
+          regressions.push(cur.nom+' — "bilan effectué ('+cur.dernierBilanEffectueLe+')" perdrait sa coche');
+        }
+        if(cur.ajustementsAFaire&&!nc.ajustementsAFaire){
+          regressions.push(cur.nom+' — note "ajustements à faire" serait perdue');
         }
       });
 
