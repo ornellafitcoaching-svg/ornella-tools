@@ -378,9 +378,31 @@ function sendBilanWA(id){
   toast('Bilan envoyé à '+c.nom.split(' ')[0]+' ✅');
 }
 
+function programmeDuMoisAEnvoyer(c){
+  if(!c.debut||c.statut!=='Actif')return false;
+  if(!c.offre||!/distanciel/i.test(c.offre))return false;
+  var d=parseDateFR(c.debut);
+  if(!d||isNaN(d.getTime()))return false;
+  var now=new Date();
+  var moisCle=now.getFullYear()+'-'+(now.getMonth()+1);
+  if(c.dernierProgrammeEnvoye===moisCle)return false;
+  return now.getDate()>=d.getDate();
+}
+
+function marquerProgrammeEnvoye(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  var now=new Date();
+  c.dernierProgrammeEnvoye=now.getFullYear()+'-'+(now.getMonth()+1);
+  save();
+  renderAlertes();
+  toast('Programme du mois marqué comme envoyé à '+c.nom.split(' ')[0]+' ✅');
+}
+
 function renderAlertes(){
   var alertes=clients.filter(function(c){return c.seancesPrevues&&(c.seancesPrevues-c.seancesEffectuees)<=1&&c.statut==='Actif';});
   var bilans=clients.filter(bilanDuCeMois);
+  var programmes=clients.filter(programmeDuMoisAEnvoyer);
   var html='<div style="font-weight:700;font-size:13px;color:var(--text2);margin:4px 0 8px">📋 Séances bientôt terminées</div>';
   html+=alertes.length?alertes.map(function(c){
       return '<div class="alert-card" onclick="showDetail('+c.id+')">'+
@@ -395,6 +417,14 @@ function renderAlertes(){
         '<button class="whatsapp-btn" style="margin-top:8px" onclick="event.stopPropagation();sendBilanWA('+c.id+')">💬 Envoyer le bilan mensuel</button>'+
         '</div>';
     }).join(''):'<div class="empty">Aucun bilan à envoyer ce mois-ci</div>';
+  html+='<div style="font-weight:700;font-size:13px;color:var(--text2);margin:18px 0 8px">💻 Programmes du mois à envoyer (distanciel)</div>';
+  html+=programmes.length?programmes.map(function(c){
+      return '<div class="alert-card" style="cursor:default">'+
+        '<div class="alert-name">'+c.nom+'</div>'+
+        '<div class="alert-info">'+c.offre+' · cliente depuis le '+c.debut+'</div>'+
+        '<button class="action-btn" style="margin-top:8px;margin-bottom:0" onclick="event.stopPropagation();marquerProgrammeEnvoye('+c.id+')">☑️ Marquer programme du mois envoyé</button>'+
+        '</div>';
+    }).join(''):'<div class="empty">Aucun programme à envoyer ce mois-ci</div>';
   document.getElementById('section-alertes').innerHTML=html;
 }
 
