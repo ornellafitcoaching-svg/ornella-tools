@@ -656,12 +656,24 @@ function sendMensurationRecapWA(id){
     return new Date(+pa[2],+pa[1]-1,+pa[0])-new Date(+pb[2],+pb[1]-1,+pb[0]);
   });
   var usedFields=MFIELDS.filter(function(f){return sorted.some(function(m){return m[f.key]!=null;});});
+  var lossFields=['poids','tourTaille','tourHanches','tourFessiers','tourCuisses','tourPoitrine','tourDos','tourBras'];
+  var lastKnown={};
   var msg='Bonjour '+c.nom.split(' ')[0]+' 😊\n\nVoici le détail de toutes tes mensurations depuis le début :\n';
   sorted.forEach(function(m){
     msg+='\n📅 '+m.date+'\n';
     usedFields.forEach(function(f){
       if(m[f.key]==null)return;
-      msg+=f.label+' : '+m[f.key]+' '+f.unit+'\n';
+      var line=f.label+' : '+m[f.key]+' '+f.unit;
+      if(lastKnown[f.key]!=null){
+        var dt=Math.round((m[f.key]-lastKnown[f.key])*10)/10;
+        if(dt!==0){
+          var isLoss=lossFields.indexOf(f.key)>=0;
+          var good=isLoss?dt<0:dt>0;
+          line+=' ('+(dt>0?'+':'')+dt+' '+f.unit+(good?' 👍':'')+')';
+        }
+      }
+      msg+=line+'\n';
+      lastKnown[f.key]=m[f.key];
     });
   });
   msg+='\nContinue comme ça, tu progresses super bien ! 💪';
