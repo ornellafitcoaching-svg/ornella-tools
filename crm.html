@@ -1332,6 +1332,16 @@ function importData(e){
         if(curPaiements>ncPaiements){
           regressions.push(cur.nom+' — '+curPaiements+' paiement(s) daté(s) actuellement, seulement '+ncPaiements+' dans le fichier');
         }
+        var curHist=(cur.historique||[]).length, ncHist=(nc.historique||[]).length;
+        if(curHist>ncHist){
+          regressions.push(cur.nom+' — '+curHist+' renouvellement(s) archivé(s) actuellement, seulement '+ncHist+' dans le fichier');
+        }
+        if(cur.dernierProgrammeEnvoye&&!nc.dernierProgrammeEnvoye){
+          regressions.push(cur.nom+' — "programme du mois envoyé ('+cur.dernierProgrammeEnvoye+')" perdrait sa coche');
+        }
+        if(cur.dernierBilanEnvoye&&!nc.dernierBilanEnvoye){
+          regressions.push(cur.nom+' — "bilan envoyé ('+cur.dernierBilanEnvoye+')" perdrait sa coche');
+        }
       });
 
       var msg='Restaurer '+imported.length+' cliente(s) ?\n\n⚠️ Les données actuelles seront remplacées.';
