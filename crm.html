@@ -341,7 +341,19 @@ function renderCard(c){
     '<div class="stat"><div class="stat-l">Séances</div><div class="stat-v">'+seances+'</div></div>'+
     '<div class="stat"><div class="stat-l">Restantes</div><div class="stat-v">'+reste+'</div></div>'+
     '<div class="stat"><div class="stat-l">Payé '+(c.montant&&c.paye>=c.montant?'✅':c.paye?'⏳':'')+'</div><div class="stat-v" style="'+payeColor+'">'+payeStr+(c.montant?' / '+c.montant+'€':'')+'</div></div>'+
-    '</div></div>';
+    '</div>'+
+    (c.statut==='Actif'?'<button class="undo-btn no-print" style="margin-top:8px" onclick="event.stopPropagation();quickTerminee('+c.id+')">✓ Marquer comme terminée</button>':'')+
+    '</div>';
+}
+
+function quickTerminee(id){
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  if(!confirm('Marquer '+c.nom+' comme terminée ?\n\nSes données restent conservées, elle passe juste dans l\'onglet "Terminées".'))return;
+  c.statut='Terminé';
+  if(!save())return;
+  renderAll();
+  toast(c.nom.split(' ')[0]+' marquée comme terminée ✓');
 }
 
 function bilanDuCeMois(c){
