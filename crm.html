@@ -1102,12 +1102,15 @@ function saveForm(id){
   var nom=gv('f-nom');
   if(!nom){toast('Prénom et nom requis');return;}
   var sp=gn('f-sp'),se=gn('f-se');
+  var newPaye=gn('f-paye')||0;
   if(id){
     var c=clients.find(function(x){return x.id===id;});
     if(c){
       var newOffre=getOffreVal();
+      var oldPaye=c.paye||0;
       // Renouvellement (changement d'offre) : on archive l'ancien pack avant de l'écraser, rien n'est perdu pour le suivi des revenus
-      if(c.offre&&newOffre&&newOffre!==c.offre&&(c.montant||c.paye)){
+      var isRenewal=c.offre&&newOffre&&newOffre!==c.offre&&(c.montant||c.paye);
+      if(isRenewal){
         c.historique=c.historique||[];
         c.historique.push({offre:c.offre,montant:c.montant||0,paye:c.paye||0,
           seancesPrevues:c.seancesPrevues,seancesEffectuees:c.seancesEffectuees,
@@ -1119,8 +1122,16 @@ function saveForm(id){
       c.antecedents=gv('f-ant');c.joursPreferes=gv('f-jours');
       c.offre=newOffre;c.debut=gv('f-debut');c.statut=gv('f-statut');
       c.seancesPrevues=sp;c.seancesEffectuees=se||0;
-      c.montant=gn('f-mont');c.paye=gn('f-paye');c.paiement=gv('f-paiem');c.notes=gv('f-notes');
+      c.montant=gn('f-mont');c.paye=newPaye;c.paiement=gv('f-paiem');c.notes=gv('f-notes');
       c.contratSigne=gv('f-contrat')==='oui';c.cgvAcceptees=gv('f-cgv')==='oui';
+      // Garde le journal de paiements datés en phase avec le champ "Payé", quelle que soit la façon dont il a été modifié :
+      // pour un renouvellement, le nouveau montant payé est un nouveau paiement ; sinon, seule la hausse compte (le solde à 0 lié au reset de renouvellement n'en est pas un).
+      if(isRenewal){
+        if(newPaye>0){ c.paiements=c.paiements||[]; c.paiements.push({montant:newPaye,date:today()}); }
+      } else {
+        var delta=newPaye-oldPaye;
+        if(delta>0){ c.paiements=c.paiements||[]; c.paiements.push({montant:delta,date:today()}); }
+      }
     }
     save();toast('Fiche mise à jour');showDetail(id);
   }else{
@@ -1131,8 +1142,9 @@ function saveForm(id){
       contratSigne:gv('f-contrat')==='oui',cgvAcceptees:gv('f-cgv')==='oui',
       offre:getOffreVal(),debut:gv('f-debut'),statut:gv('f-statut'),
       seancesPrevues:sp,seancesEffectuees:se||0,
-      montant:gn('f-mont'),paye:gn('f-paye'),paiement:gv('f-paiem'),notes:gv('f-notes'),
+      montant:gn('f-mont'),paye:newPaye,paiement:gv('f-paiem'),notes:gv('f-notes'),
       ci:clients.length%COLORS.length,mesures:[]};
+    if(newPaye>0)nc.paiements=[{montant:newPaye,date:today()}];
     clients.push(nc);save();toast('Cliente ajoutée !');showDetail(nc.id);
   }
 }
