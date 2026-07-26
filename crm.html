@@ -401,8 +401,10 @@ function renderRevenus(){
     totalEncaisse+=total;
     nbPacks+=hist.length+(c.montant?1:0);
     if(c.statut==='Actif'&&c.montant)resteAEncaisser+=Math.max(0,c.montant-payeActuel);
-    return {nom:c.nom,total:total};
+    return {nom:c.nom,total:total,nbRenouv:hist.length};
   }).filter(function(x){return x.total>0;}).sort(function(a,b){return b.total-a.total;});
+  var parFidelite=clients.map(function(c){return {nom:c.nom,nbRenouv:(c.historique||[]).length};})
+    .filter(function(x){return x.nbRenouv>0;}).sort(function(a,b){return b.nbRenouv-a.nbRenouv;});
 
   // Totaux mensuel/annuel : uniquement à partir des paiements datés (bouton "Enregistrer un paiement")
   var now=new Date(),moisTotal=0,anneeTotal=0,nbPaiementsDates=0;
@@ -432,6 +434,11 @@ function renderRevenus(){
   html+=parCliente.length?parCliente.map(function(x){
     return '<div class="info-row"><span class="info-l">'+x.nom+'</span><span class="info-v">'+x.total+'€</span></div>';
   }).join(''):'<p style="font-size:12px;color:#B0A8A8">Aucun paiement enregistré pour l\'instant.</p>';
+  html+='</div>';
+  html+='<div class="dcard"><div class="dcard-title">🔁 Fidélité — nombre de renouvellements</div>';
+  html+=parFidelite.length?parFidelite.map(function(x){
+    return '<div class="info-row"><span class="info-l">'+x.nom+'</span><span class="info-v">'+x.nbRenouv+' renouvellement'+(x.nbRenouv>1?'s':'')+'</span></div>';
+  }).join(''):'<p style="font-size:12px;color:#B0A8A8">Aucun renouvellement enregistré pour l\'instant — se compte à chaque changement d\'offre sur une fiche existante.</p>';
   html+='</div>';
   html+='<p style="font-size:11px;color:#B0A8A8;padding:0 4px">ℹ️ "Total encaissé" = champ "Payé" de chaque fiche + historique des packs renouvelés (précis, mais pas daté). "Ce mois-ci / cette année" = uniquement les paiements ajoutés via le bouton daté — les anciens montants entrés à la main dans "Payé" n\'y apparaissent pas tant qu\'ils ne sont pas ressaisis comme paiement daté.</p>';
   el.innerHTML=html;
@@ -573,7 +580,8 @@ function showDetail(id){
 
   // ── HISTORIQUE DES PACKS ──────────────────────────────────────
   if(c.historique&&c.historique.length){
-    html+='<div class="dcard"><div class="dcard-title">Historique des packs précédents</div>';
+    var nbRenouv=c.historique.length;
+    html+='<div class="dcard"><div class="dcard-title">Historique des packs précédents<span style="color:var(--accent);text-transform:none;letter-spacing:0;font-weight:700">🔁 '+nbRenouv+' renouvellement'+(nbRenouv>1?'s':'')+'</span></div>';
     c.historique.slice().reverse().forEach(function(h){
       html+='<div class="info-row"><span class="info-l">'+h.offre+'</span>'+
         '<span class="info-v">'+(h.paye||0)+'€ / '+(h.montant||0)+'€ · terminé le '+h.finLe+'</span></div>';
